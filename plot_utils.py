@@ -1,0 +1,31 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
+def plot_result(data, log_path):
+    plt.figure()
+    plt.subplot(3,1,1)
+    plt.plot(np.clip(data.train_loss,-np.inf,0.05),linewidth=1.)
+    plt.title('train loss '+str(data.train_loss[-1]))
+    plt.subplot(3,1,2)
+    plt.plot(np.clip(data.valid_mse,-np.inf,0.05),linewidth=1.)
+    plt.title('valid mse '+str(data.valid_mse[-1]))
+    plt.subplot(3,1,3)
+    plt.plot(np.clip(data.valid_l1,-np.inf,0.2),linewidth=1.)
+    plt.title('valid mae '+str(data.valid_l1[-1]))
+    plt.savefig(log_path+'curve.png')
+    plt.close()
+
+    plt.figure()
+    plot1, = plt.plot(data.pred_train[::100],linewidth=1.)
+    plot2, = plt.plot(data.label_train[::100],linewidth=1.)
+    plt.legend([plot1,plot2],['pred','label'])
+    plt.title('final train result')
+    plt.savefig(log_path+'final_train.png')
+    plt.close()
+    plt.figure()
+    plot1, = plt.plot(data.pred_valid[::25],linewidth=1.)    
+    plot2, = plt.plot(data.label_valid[::25],linewidth=1.)
+    plt.legend([plot1,plot2],['pred','label'])
+    plt.title('final valid result')
+    plt.savefig(log_path+'final_valid.png')
+    plt.close()
