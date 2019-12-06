@@ -15,15 +15,12 @@ class GNNStackSplit(GNNStack):
                 node_input_dim, node_dim,
                 edge_dim, edge_mode, predict_mode,
                 update_edge, 
-                num_obj, num_att,
                 args):
         super(GNNStack, self).__init__() # just call the grandparent's initializer
         self.dropout = args.dropout
         self.model_types = args.model_types
         self.gnn_layer_num = len(args.model_types)
         self.update_edge = update_edge
-        self.num_obj = num_obj
-        self.num_att = num_att
 
         # convs
         self.obj_convs = self.build_convs(node_input_dim, node_dim, edge_dim, edge_mode, args.model_types)
@@ -75,8 +72,6 @@ class GNNStackSplit(GNNStack):
             else:
                 x = obj_conv(x, obj_edge_index)
                 x = att_conv(x, att_edge_index)
-            # x = torch.cat((obj_x[:self.num_obj,:],att_x[self.num_obj:,:]),dim=0)
-            # x = obj_x + att_x
             x = F.relu(x)
             x = F.dropout(x, p=self.dropout, training=self.training)
             if self.update_edge:

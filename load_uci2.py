@@ -25,8 +25,13 @@ dataset = UCIDataset(root='/tmp/UCI')
 from torch_geometric.data import DataLoader
 loader = DataLoader(dataset, batch_size=train_args.batch_size, shuffle=True)
 
-from models2 import GNNStack
-model = GNNStack(dataset.num_node_features, train_args.node_dim,
+if train_args.gnn_type == 'GNN':
+    from models2 import GNNStack
+    model_cls = GNNStack
+elif train_args.gnn_type == 'GNN_SPLIT':
+    from models3 import GNNStackSplit
+    model_cls = GNNStackSplit
+model = model_cls(dataset.num_node_features, train_args.node_dim,
                         train_args.edge_dim, train_args.edge_mode,
                         train_args.predict_mode,
                         (train_args.update_edge==1),

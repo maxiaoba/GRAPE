@@ -19,21 +19,15 @@ def train(dataset, args, log_path):
     # build model
     if args.gnn_type == 'GNN':
         from models2 import GNNStack
-        model = GNNStack(dataset.num_node_features, args.node_dim,
-                                args.edge_dim, args.edge_mode,
-                                args.predict_mode,
-                                (args.update_edge==1),
-                                args)
+        model_cls = GNNStack
     elif args.gnn_type == 'GNN_SPLIT':
         from models3 import GNNStackSplit
-        model = GNNStackSplit(dataset.num_node_features, args.node_dim,
-                                args.edge_dim, args.edge_mode,
-                                args.predict_mode,
-                                (args.update_edge==1),
-                                dataset[0].num_obj,
-                                dataset[0].num_att,
-                                args)
-        print(dataset[0].num_obj,dataset[0].num_att)
+        model_cls = GNNStackSplit
+    model = model_cls(dataset.num_node_features, args.node_dim,
+                            args.edge_dim, args.edge_mode,
+                            args.predict_mode,
+                            (args.update_edge==1),
+                            args)
 
     if args.mode == 'load':
         print('loading model param')
