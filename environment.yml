@@ -1,6 +1,5 @@
 name: cs224w
 channels:
-  - snap-stanford
   - defaults
 dependencies:
   - matplotlib=3.1.1
@@ -14,7 +13,6 @@ dependencies:
   - readline=7.0
   - setuptools=41.2.0
   - six=1.12.0
-  - snap-stanford=5.0.0
   - sqlite=3.29.0
   - tk=8.6.8
   - tornado=6.0.3
