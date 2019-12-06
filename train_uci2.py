@@ -51,6 +51,7 @@ def train(dataset, args, log_path):
         Valid_l1 = result.valid_l1
 
     mask_defined = False
+    best_valid_l1 = -np.inf
     for epoch in range(args.epochs):
         train_loss = 0.
         valid_mse = 0.
@@ -129,6 +130,14 @@ def train(dataset, args, log_path):
         print('valid mse: ',valid_mse)
         print('valid l1: ',valid_l1)
 
+        if valid_l1 > best_valid_l1:
+            best_valid_l1 = valid_l1
+            if args.save_mode == 'best':
+                torch.save(model.state_dict(), log_path+'best_ep'+str(epoch)+'l1'+f"{valid_l1:.5f}"+'.pt')
+        if args.save_mode == 'gap':
+            if epoch % args.save_gap == 0:
+                torch.save(model.state_dict(), log_path+'ep'+str(epoch)+'l1'+f"{valid_l1:.5f}"+'.pt')
+
     pred_train = pred_train.detach().numpy()
     label_train = label_train.detach().numpy()
     pred_valid = pred_valid.detach().numpy()
@@ -181,6 +190,8 @@ def main():
     parser.add_argument('--seed', type=int, default=4)
     parser.add_argument('--log_dir', type=str, default='1')
     parser.add_argument('--data', type=str, default="uci")
+    parser.add_argument('--save_mode', type=str, default="last")
+    parser.add_argument('--save_gap', type=int, default=1000)
     args = parser.parse_args()
     args.model_types = args.model_types.split('_')
 
