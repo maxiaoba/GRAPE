@@ -17,14 +17,14 @@ from utils import build_optimizer, objectview
 
 def train(dataset, args, log_path):
     # build model
-    if args.gnn_type == 'gnn':
+    if args.gnn_type == 'GNN':
         from models2 import GNNStack
         model = GNNStack(dataset.num_node_features, args.node_dim,
                                 args.edge_dim, args.edge_mode,
                                 args.predict_mode,
                                 (args.update_edge==1),
                                 args)
-    elif args.gnn_type == 'gnn_split':
+    elif args.gnn_type == 'GNN_SPLIT':
         from models3 import GNNStackSplit
         model = GNNStackSplit(dataset.num_node_features, args.node_dim,
                                 args.edge_dim, args.edge_mode,
