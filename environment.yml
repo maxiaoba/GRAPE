@@ -2,44 +2,16 @@ name: cs224w
 channels:
   - defaults
 dependencies:
+  - pip=19.2.3
+  - python=3.7.4
   - matplotlib=3.1.1
   - numpy=1.17.2
-  - openssl=1.1.1d
-  - pip=19.2.3
-  - pyparsing=2.4.2
-  - python=3.7.4
-  - python-dateutil=2.8.0
-  - pytz=2019.2
-  - readline=7.0
-  - setuptools=41.2.0
-  - six=1.12.0
-  - sqlite=3.29.0
-  - tk=8.6.8
-  - tornado=6.0.3
-  - wheel=0.33.6
-  - xz=5.2.4
-  - zlib=1.2.11
   - pip:
-    - chardet==3.0.4
-    - decorator==4.4.0
-    - googledrivedownloader==0.4
-    - h5py==2.10.0
-    - idna==2.8
-    - isodate==0.6.0
-    - joblib==0.14.0
-    - networkx==2.4
-    - pandas==0.25.2
-    - plyfile==0.7.1
     - pyqt5==5.13.1
-    - pyqt5-sip==4.19.19
-    - rdflib==4.2.2
-    - requests==2.22.0
-    - scikit-learn==0.21.3
     - scipy==1.3.1
     - torch==1.3.0
     - torch-cluster==1.4.5
     - torch-geometric==1.3.2
     - torch-scatter==1.3.2
     - torch-sparse==0.4.3
-    - urllib3==1.25.6
 
