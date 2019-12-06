@@ -22,4 +22,10 @@ dependencies:
     # pip install --no-cache-dir torch-cluster
     # pip install torch-geometric
     # pip install networkx
+    - torch
+    - torch-scatter --no-cache-dir
+    - torch-sparse --no-cache-dir 
+    - torch-cluster --no-cache-dir 
+    - torch-geometric
+    - networkx
 
