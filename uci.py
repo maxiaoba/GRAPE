@@ -104,13 +104,14 @@ def get_dataset():
     #nrow, ncol = df.shape
     edge_start, edge_end = create_edge(df)
     edge_index = torch.tensor([edge_start, edge_end], dtype=torch.float)
-    edge_attr = np.array(create_edge_attr(df))
+    edge_attr = torch.tensor(create_edge_attr(df), dtype=torch.float)
     node_init = create_node(df) 
     #x = torch.tensor([[1] for x in range(nrow+ncol)], dtype=torch.float)
     x = torch.tensor(node_init, dtype=torch.float)
     # rev_edges = remove_edges(df, 90)
-    dataset = Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
-    return dataset
+    data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
+
+    return [data]
 
 def pre_transform(data):
     df = process(data)
@@ -162,6 +163,7 @@ class UCIDataset(Dataset):
         # Download to `self.raw_dir`.
         df = pd.read_csv('https://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/wpbc.data',
                         header=None)
+
         file_path = folder = osp.join(self.root, 'raw',self.raw_file_names[0])
         df.to_pickle(file_path)
 

@@ -23,7 +23,8 @@ def train(dataset, args, log_path):
     elif args.gnn_type == 'GNN_SPLIT':
         from models3 import GNNStackSplit
         model_cls = GNNStackSplit
-    model = model_cls(dataset.num_node_features, args.node_dim,
+
+    model = model_cls(dataset[0].num_node_features, args.node_dim,
                             args.edge_dim, args.edge_mode,
                             args.predict_mode,
                             (args.update_edge==1),
@@ -35,7 +36,7 @@ def train(dataset, args, log_path):
     # build optimizer
     scheduler, opt = build_optimizer(args, model.parameters())
     # build data loader
-    loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
+    #loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
 
     # train
     if args.mode == 'new':
@@ -56,7 +57,12 @@ def train(dataset, args, log_path):
         train_loss = 0.
         valid_mse = 0.
         valid_l1 = 0.
-        for data in loader:
+        for data in dataset:
+        #loader:
+        #[dataset]:
+        #loader:
+            #print(dataset)
+            #print(data)
             model.train()
             if (not mask_defined) or (args.fix_train_mask == 0):
                 if args.load_train_mask == 1:
@@ -208,12 +214,14 @@ def main():
     torch.manual_seed(seed)
     
     from uci import get_dataset, UCIDataset, SimDataset
-    if args.data == "uci":
-        dataset = UCIDataset(root='/tmp/UCI')
-        #print(dataset.is_undirected())
-    elif args.data == "simulated":
-        dataset = SimDataset(root='/tmp/SIM')
+    #if args.data == "uci":
+    #    dataset = UCIDataset(root='/tmp/UCI')
+    #    #print(dataset.is_undirected())
+    #elif args.data == "simulated":
+    #    dataset = SimDataset(root='/tmp/SIM')
     # dataset = dataset.shuffle()
+
+    dataset = get_dataset()
 
     log_path = './Data/uci/'+args.log_dir+'/'
     if args.mode == 'new':
