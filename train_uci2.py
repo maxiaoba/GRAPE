@@ -190,7 +190,7 @@ def main():
     parser.add_argument('--seed', type=int, default=4)
     parser.add_argument('--log_dir', type=str, default='1')
     parser.add_argument('--data', type=str, default="uci")
-    parser.add_argument('--save_mode', type=str, default="last")
+    parser.add_argument('--save_mode', type=str, default="last") #last, gap, best
     parser.add_argument('--save_gap', type=int, default=1000)
     args = parser.parse_args()
     args.model_types = args.model_types.split('_')
