@@ -96,12 +96,15 @@ def create_node(df):
     node = sample_node + feature_node.tolist()
     return node
 
-def get_dataset():
-    df = pd.read_csv('https://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/wpbc.data',
-                    header=None)
-    #df = df.drop(df.columns[[0, 1]], axis=1)
-    df = process(df)
-    #nrow, ncol = df.shape
+def get_dataset(uci_data="cancer", processed_df_file=None):
+    if uci_data == "cancer":
+        df = pd.read_csv('https://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/wpbc.data',
+                        header=None)
+        #df = df.drop(df.columns[[0, 1]], axis=1)
+        df = process(df)
+        #nrow, ncol = df.shape
+    else:
+        df = pd.read_csv(processed_df_file)
     edge_start, edge_end = create_edge(df)
     edge_index = torch.tensor([edge_start, edge_end], dtype=torch.float)
     edge_attr = torch.tensor(create_edge_attr(df), dtype=torch.float)

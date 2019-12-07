@@ -36,7 +36,7 @@ def train(dataset, args, log_path):
     # build optimizer
     scheduler, opt = build_optimizer(args, model.parameters())
     # build data loader
-    #loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
+    loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
 
     # train
     if args.mode == 'new':
@@ -57,8 +57,7 @@ def train(dataset, args, log_path):
         train_loss = 0.
         valid_mse = 0.
         valid_l1 = 0.
-        for data in dataset:
-        #loader:
+        for data in loader: #dataset:
         #[dataset]:
         #loader:
             #print(dataset)
@@ -169,6 +168,8 @@ def train(dataset, args, log_path):
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--uci_data', type=str, default='pks')
+    parser.add_argument('--df_file', type=str, default='./parkinson.csv')
     parser.add_argument('--mode', type=str, default='new')
     parser.add_argument('--gnn_type', type=str, default='GNN')
     parser.add_argument('--model_types', type=str, default='EGCN_EGCN_EGCN')
@@ -215,13 +216,11 @@ def main():
     
     from uci import get_dataset, UCIDataset, SimDataset
     #if args.data == "uci":
-    #    dataset = UCIDataset(root='/tmp/UCI')
-    #    #print(dataset.is_undirected())
+    #   dataset = UCIDataset(root='/tmp/UCI')
     #elif args.data == "simulated":
-    #    dataset = SimDataset(root='/tmp/SIM')
-    # dataset = dataset.shuffle()
+    #   dataset = SimDataset(root='/tmp/SIM')
 
-    dataset = get_dataset()
+    dataset = get_dataset(args.uci_data, args.df_file)
 
     log_path = './Data/uci/'+args.log_dir+'/'
     if args.mode == 'new':
