@@ -52,7 +52,7 @@ def train(dataset, args, log_path):
         Valid_l1 = result.valid_l1
 
     mask_defined = False
-    best_valid_l1 = -np.inf
+    best_valid_l1 = np.inf
     for epoch in range(args.epochs):
         train_loss = 0.
         valid_mse = 0.
@@ -68,6 +68,9 @@ def train(dataset, args, log_path):
                     print('loading train validation mask')
                     train_rate = 1-args.valid
                     train_mask_dir = log_path+'../len'+str(int(data.edge_attr.shape[0]/2))+'rate'+f"{train_rate:.1f}"+'seed0.npy'
+                    if not os.path.exists(train_mask_dir):
+                        from utils import save_mask
+                        save_mask(int(data.edge_attr.shape[0]/2),train_rate,log_path+'../',0)
                     print(train_mask_dir)
                     train_mask = np.load(train_mask_dir)
                     train_mask = torch.BoolTensor(train_mask).view(-1)
@@ -138,10 +141,9 @@ def train(dataset, args, log_path):
         print('valid mse: ',valid_mse)
         print('valid l1: ',valid_l1)
 
-        if valid_l1 > best_valid_l1:
+        if valid_l1 < best_valid_l1:
             best_valid_l1 = valid_l1
-            if args.save_mode == 'best':
-                torch.save(model.state_dict(), log_path+'best_ep'+str(epoch)+'l1'+f"{valid_l1:.5f}"+'.pt')
+            torch.save(model.state_dict(), log_path+'best.pt')
         if args.save_mode == 'gap':
             if epoch % args.save_gap == 0:
                 torch.save(model.state_dict(), log_path+'ep'+str(epoch)+'l1'+f"{valid_l1:.5f}"+'.pt')
@@ -196,10 +198,10 @@ def main():
     parser.add_argument('--fix_train_mask', type=int, default=1)  # 1: yes, 0: no
     parser.add_argument('--load_train_mask', type=int, default=1)  # 1: yes, 0: no
     parser.add_argument('--remove_unknown_edge', type=int, default=1)  # 1: yes, 0: no
-    parser.add_argument('--seed', type=int, default=4)
+    parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--log_dir', type=str, default='1')
     parser.add_argument('--data', type=str, default="uci")
-    parser.add_argument('--save_mode', type=str, default="last") #last, gap, best
+    parser.add_argument('--save_mode', type=str, default="last") #last, gap
     parser.add_argument('--save_gap', type=int, default=1000)
     args = parser.parse_args()
     args.model_types = args.model_types.split('_')
