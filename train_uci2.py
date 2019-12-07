@@ -66,7 +66,10 @@ def train(dataset, args, log_path):
             if (not mask_defined) or (args.fix_train_mask == 0):
                 if args.load_train_mask == 1:
                     print('loading train validation mask')
-                    train_mask = np.load(args.train_mask_dir)
+                    train_rate = 1-args.valid
+                    train_mask_dir = log_path+'../len'+str(int(data.edge_attr.shape[0]/2))+'rate'+f"{train_rate:.1f}"+'seed0.npy'
+                    print(train_mask_dir)
+                    train_mask = np.load(train_mask_dir)
                     train_mask = torch.BoolTensor(train_mask).view(-1)
                 else:
                     print('defining train validation mask')
@@ -168,13 +171,13 @@ def train(dataset, args, log_path):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--uci_data', type=str, default='pks')
+    parser.add_argument('--uci_data', type=str, default='pks') # 'pks', 'cancer'
     parser.add_argument('--df_file', type=str, default='./parkinson.csv')
     parser.add_argument('--mode', type=str, default='new')
     parser.add_argument('--gnn_type', type=str, default='GNN')
-    parser.add_argument('--model_types', type=str, default='EGCN_EGCN_EGCN')
-    parser.add_argument('--node_dim', type=int, default=6)
-    parser.add_argument('--edge_dim', type=int, default=6)
+    parser.add_argument('--model_types', type=str, default='EGSAGE_EGSAGE_EGSAGE')
+    parser.add_argument('--node_dim', type=int, default=64)
+    parser.add_argument('--edge_dim', type=int, default=64)
     parser.add_argument('--edge_mode', type=int, default=1) # 0: use it as weight 1: as input to mlp
     parser.add_argument('--predict_mode', type=int, default=0) # 0: use node embd, 1: use edge embd 
     parser.add_argument('--update_edge', type=int, default=1)  # 1: yes, 0: no
@@ -192,7 +195,6 @@ def main():
     parser.add_argument('--known', type=float, default=0.7)
     parser.add_argument('--fix_train_mask', type=int, default=1)  # 1: yes, 0: no
     parser.add_argument('--load_train_mask', type=int, default=1)  # 1: yes, 0: no
-    parser.add_argument('--train_mask_dir', type=str, default='./Data/uci/len6336rate0.7seed0.npy')
     parser.add_argument('--remove_unknown_edge', type=int, default=1)  # 1: yes, 0: no
     parser.add_argument('--seed', type=int, default=4)
     parser.add_argument('--log_dir', type=str, default='1')
@@ -222,7 +224,7 @@ def main():
 
     dataset = get_dataset(args.uci_data, args.df_file)
 
-    log_path = './Data/uci/'+args.log_dir+'/'
+    log_path = './Data/uci/'+args.uci_data+'/'+args.log_dir+'/'
     if args.mode == 'new':
         os.mkdir(log_path)
     train(dataset, args, log_path) 
