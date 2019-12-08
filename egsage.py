@@ -20,6 +20,7 @@ class EGraphSage(MessagePassing):
 
         if edge_mode == 0:
             self.message_lin = nn.Linear(in_channels, out_channels)
+            self.attention_lin = nn.Linear(2*in_channels+edge_channels, 1)
         elif edge_mode == 1:
             self.message_lin = nn.Linear(in_channels+edge_channels, out_channels)
         self.agg_lin = nn.Linear(in_channels+out_channels, out_channels)
@@ -33,12 +34,12 @@ class EGraphSage(MessagePassing):
 
         return self.propagate(edge_index, x=x, edge_attr=edge_attr, size=(num_nodes, num_nodes))
 
-    def message(self, x_j, edge_attr, edge_index, size):
+    def message(self, x_i, x_j, edge_attr, edge_index, size):
         # x_j has shape [E, in_channels]
         # edge_index has shape [2, E]
         if self.edge_mode == 0:
-            assert edge_attr.shape[1] == 1
-            m_j = edge_attr * F.relu(self.message_lin(x_j))
+            attention = self.attention_lin(torch.cat((x_i,x_j, edge_attr),dim=-1))
+            m_j = attention * F.relu(self.message_lin(x_j))
         elif self.edge_mode == 1:
             m_j = torch.cat((x_j, edge_attr),dim=-1)
             m_j = F.relu(self.message_lin(m_j))
