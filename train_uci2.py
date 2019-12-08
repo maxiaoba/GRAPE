@@ -178,7 +178,6 @@ def train(dataset, args, log_path):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--uci_data', type=str, default='pks') # 'pks', 'cancer'
-    parser.add_argument('--df_file', type=str, default='./parkinson.csv')
     parser.add_argument('--mode', type=str, default='new')
     parser.add_argument('--gnn_type', type=str, default='GNN')
     parser.add_argument('--model_types', type=str, default='EGSAGE_EGSAGE_EGSAGE')
@@ -188,12 +187,12 @@ def main():
     parser.add_argument('--predict_mode', type=int, default=0) # 0: use node embd, 1: use edge embd 
     parser.add_argument('--update_edge', type=int, default=1)  # 1: yes, 0: no
     parser.add_argument('--batch_size', type=int, default=32) # doesn't matter here
-    parser.add_argument('--epochs', type=int, default=5000)
+    parser.add_argument('--epochs', type=int, default=20000)
     parser.add_argument('--opt', type=str, default='adam')
     parser.add_argument('--opt_scheduler', type=str, default='none')
     parser.add_argument('--opt_restart', type=int, default=0)
-    parser.add_argument('--opt_decay_step', type=int, default=0)
-    parser.add_argument('--opt_decay_rate', type=float, default=0)
+    parser.add_argument('--opt_decay_step', type=int, default=1000)
+    parser.add_argument('--opt_decay_rate', type=float, default=0.9)
     parser.add_argument('--dropout', type=float, default=0.)
     parser.add_argument('--weight_decay', type=float, default=0.)
     parser.add_argument('--lr', type=float, default=0.001)
@@ -221,13 +220,9 @@ def main():
     np.random.seed(seed)
     torch.manual_seed(seed)
     
-    from uci import get_dataset, UCIDataset, SimDataset
-    #if args.data == "uci":
-    #   dataset = UCIDataset(root='/tmp/UCI')
-    #elif args.data == "simulated":
-    #   dataset = SimDataset(root='/tmp/SIM')
+    from uci import get_dataset
 
-    dataset = get_dataset(args.uci_data, args.df_file)
+    dataset = get_dataset(args.uci_data)
 
     log_path = './Data/uci/'+args.uci_data+'/'+args.log_dir+'/'
     if args.mode == 'new':
