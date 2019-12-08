@@ -5,10 +5,11 @@ import argparse
 from utils import objectview
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--uci_data', type=str, default='cancer')
 parser.add_argument('--file', type=str, default='1')
 args = parser.parse_args()
 
-load_path = './Data/uci/'+args.file+'/'
+load_path = './Data/uci/'+args.uci_data+'/'+args.file+'/'
 
 import joblib
 result = joblib.load(load_path+'result.pkl')
