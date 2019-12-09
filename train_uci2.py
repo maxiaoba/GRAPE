@@ -67,50 +67,17 @@ def train(dataset, args, log_path):
             #print(data)
             model.train()
             if (not mask_defined) or (args.fix_train_mask == 0):
-                if args.load_train_mask == 1:
-                    print('loading train validation mask')
-                    train_rate = 1-args.valid
-                    train_mask_dir = log_path+'../len'+str(int(data.edge_attr.shape[0]/2))+'rate'+f"{train_rate:.1f}"+'seed0.npy'
-                    if not os.path.exists(train_mask_dir):
-                        from utils import save_mask
-                        save_mask(int(data.edge_attr.shape[0]/2),train_rate,log_path+'../',0)
-                    print(train_mask_dir)
-                    train_mask = np.load(train_mask_dir)
-                    train_mask = torch.BoolTensor(train_mask).view(-1)
-                else:
-                    print('defining train validation mask')
-                    train_mask = (torch.FloatTensor(int(data.edge_attr.shape[0]/2), 1).uniform_() < (1-args.valid)).view(-1)
-                    #print(data.edge_attr.shape[0])
-                #print(len(train_mask))
-                valid_mask = ~train_mask
-                mask_defined = True
-
-            known_mask = train_mask.clone().detach()
-            known_mask[train_mask] = (torch.FloatTensor(torch.sum(train_mask).item()).uniform_() < args.known)
-            # known mask is a mask that masks train mask
-
-            # now concat all masks by it self
-            double_train_mask = torch.cat((train_mask, train_mask),dim=0)
-            double_valid_mask = torch.cat((valid_mask, valid_mask),dim=0)
-            double_known_mask = torch.cat((known_mask, known_mask),dim=0)
+                from utils import get_mask
+                train_mask, known_mask, double_train_mask, double_known_mask = \
+                    get_mask(args.valid,args.known,(args.load_train_mask==1),log_path+'../',data)
+            mask_defined = True
             
-            x = torch.FloatTensor(np.copy(data.x))
+            x = data.x.clone().detach()
             edge_attr = data.edge_attr.clone().detach()
-            edge_index = torch.tensor(np.copy(data.edge_index),dtype=int)
-
-            if args.remove_unknown_edge == 1:
-                known_edge_index = edge_index[:,double_known_mask]
-                known_edge_attr = edge_attr[double_known_mask]
-                train_edge_index = edge_index[:,double_train_mask]
-                train_edge_attr = edge_attr[double_train_mask]
-            else:
-                train_edge_index = edge_index
-                train_edge_attr = edge_attr.clone().detach()
-                train_edge_attr[double_valid_mask] = 0.
-                known_edge_index = edge_index
-                known_edge_attr = edge_attr.clone().detach()
-                known_edge_attr[~double_known_mask] = 0.
-
+            edge_index = data.edge_index.clone().detach()
+            from utils import mask_edge
+            train_edge_index, train_edge_attr = mask_edge(edge_index,edge_attr,double_train_mask,(args.remove_unknown_edge == 1))
+            known_edge_index, known_edge_attr = mask_edge(edge_index,edge_attr,double_known_mask,(args.remove_unknown_edge == 1))
 
             opt.zero_grad()
             pred = model(x, known_edge_attr, known_edge_index, edge_index[:,:int(edge_index.shape[1]/2)])
@@ -125,8 +92,8 @@ def train(dataset, args, log_path):
 
             model.eval()
             pred = model(x, train_edge_attr, train_edge_index, edge_index[:,:int(edge_index.shape[1]/2)])
-            pred_valid = pred[valid_mask]
-            label_valid = label[valid_mask]
+            pred_valid = pred[~train_mask]
+            label_valid = label[~train_mask]
             mse = model.metric(pred_valid, label_valid, 'mse')
             valid_mse += mse.item()
             l1 = model.metric(pred_valid, label_valid, 'l1')
@@ -204,7 +171,7 @@ def main():
     parser.add_argument('--load_train_mask', type=int, default=1)  # 1: yes, 0: no
     parser.add_argument('--remove_unknown_edge', type=int, default=1)  # 1: yes, 0: no
     parser.add_argument('--seed', type=int, default=0)
-    parser.add_argument('--log_dir', type=str, default='1')
+    parser.add_argument('--log_dir', type=str, default='0')
     parser.add_argument('--data', type=str, default="uci")
     parser.add_argument('--save_gap', type=int, default=0) # 0: not save by gap
     args = parser.parse_args()
@@ -223,7 +190,6 @@ def main():
     torch.manual_seed(seed)
     
     from uci import get_dataset
-
     dataset = get_dataset(args.uci_data)
 
     log_path = './Data/uci/'+args.uci_data+'/'+args.log_dir+'/'

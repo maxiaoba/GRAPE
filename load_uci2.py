@@ -21,10 +21,8 @@ for key in train_args.__dict__.keys():
 from plot_utils import plot_result
 plot_result(result, load_path)
 
-from uci import UCIDataset
-dataset = UCIDataset(root='/tmp/UCI')
-from torch_geometric.data import DataLoader
-loader = DataLoader(dataset, batch_size=train_args.batch_size, shuffle=True)
+from uci import get_dataset
+dataset = get_dataset(args.uci_data)
 
 if train_args.gnn_type == 'GNN':
     from models2 import GNNStack
@@ -32,7 +30,7 @@ if train_args.gnn_type == 'GNN':
 elif train_args.gnn_type == 'GNN_SPLIT':
     from models3 import GNNStackSplit
     model_cls = GNNStackSplit
-model = model_cls(dataset.num_node_features, train_args.node_dim,
+model = model_cls(dataset[0].num_node_features, train_args.node_dim,
                         train_args.edge_dim, train_args.edge_mode,
                         train_args.predict_mode,
                         (train_args.update_edge==1),
@@ -40,30 +38,20 @@ model = model_cls(dataset.num_node_features, train_args.node_dim,
 model.load_state_dict(torch.load(load_path+'model.pt'))
 model.eval()
 
-for data in loader:
-    if train_args.load_train_mask == 1:
-        print('loading train validation mask')
-        train_mask = np.load(train_args.train_mask_dir)
-        train_mask = torch.BoolTensor(train_mask).view(-1)
-    else:
-        print('defining train validation mask')
-        train_mask = (torch.FloatTensor(int(data.edge_attr.shape[0]/2), 1).uniform_() < (1-train_args.valid)).view(-1)
-    train_mask = torch.cat((train_mask, train_mask),dim=0)
-    valid_mask = ~train_mask
+mask_defined = False
+for data in dataset:
+    if (not mask_defined) or (args.fix_train_mask == 0):
+        from utils import get_mask
+        train_mask, known_mask, double_train_mask, double_known_mask = \
+            get_mask(train_args.valid,train_args.known,(train_args.load_train_mask==1),load_path+'../',data)
     mask_defined = True
-
-    x = torch.FloatTensor(np.copy(data.x))
+    
+    x = data.x.clone().detach()
     edge_attr = data.edge_attr.clone().detach()
-    edge_index = torch.tensor(np.copy(data.edge_index),dtype=int)
-
-
-    if train_args.remove_unknown_edge == 1:
-        train_edge_index = edge_index[:,train_mask]
-        train_edge_attr = edge_attr[train_mask]
-    else:
-        train_edge_index = edge_index
-        train_edge_attr = edge_attr.clone().detach()
-        train_edge_attr[valid_mask] = 0.
+    edge_index = data.edge_index.clone().detach()
+    from utils import mask_edge
+    train_edge_index, train_edge_attr = mask_edge(edge_index,edge_attr,double_train_mask,(train_args.remove_unknown_edge == 1))
+    known_edge_index, known_edge_attr = mask_edge(edge_index,edge_attr,double_known_mask,(train_args.remove_unknown_edge == 1))
 
     xs, preds = model(x, train_edge_attr, train_edge_index, edge_index, return_x=True)
     Os = {}
