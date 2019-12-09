@@ -25,6 +25,12 @@ class EGraphSage(MessagePassing):
             self.message_lin = nn.Linear(in_channels+edge_channels, out_channels)
         elif edge_mode == 2:
             self.message_lin = nn.Linear(2*in_channels+edge_channels, out_channels)
+        elif edge_mode == 3:
+            self.message_lin = nn.Sequential(
+                    nn.Linear(2*in_channels+edge_channels, out_channels),
+                    nn.ReLU(),
+                    nn.Linear(out_channels, out_channels),
+                    )
         self.agg_lin = nn.Linear(in_channels+out_channels, out_channels)
 
         self.normalize_emb = normalize_emb
@@ -45,7 +51,7 @@ class EGraphSage(MessagePassing):
         elif self.edge_mode == 1:
             m_j = torch.cat((x_j, edge_attr),dim=-1)
             m_j = F.relu(self.message_lin(m_j))
-        elif self.edge_mode == 2:
+        elif self.edge_mode == 2 or self.edge_mode == 3:
             m_j = torch.cat((x_i,x_j, edge_attr),dim=-1)
             m_j = F.relu(self.message_lin(m_j))  
         return m_j
