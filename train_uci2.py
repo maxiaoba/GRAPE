@@ -179,7 +179,7 @@ def train(dataset, args, log_path):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--uci_data', type=str, default='cancer') # 'pks', 'cancer'
+    parser.add_argument('--uci_data', type=str, default='cancer') # 'pks', 'cancer', 'housing', 'wine'
     parser.add_argument('--mode', type=str, default='new')
     parser.add_argument('--gnn_type', type=str, default='GNN')
     parser.add_argument('--model_types', type=str, default='EGSAGE_EGSAGE_EGSAGE')
