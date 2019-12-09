@@ -36,7 +36,7 @@ def train(dataset, args, log_path):
     # build optimizer
     scheduler, opt = build_optimizer(args, model.parameters())
     # build data loader
-    loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
+    # loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
 
     # train
     if args.mode == 'new':
@@ -58,10 +58,10 @@ def train(dataset, args, log_path):
         train_loss = 0.
         valid_mse = 0.
         valid_l1 = 0.
-        for data in loader: #dataset:
-        #[dataset]:
-        #loader:
-            #print(dataset)
+
+        if scheduler is not None:
+            scheduler.step(epoch)
+        for data in dataset: #loader:
             #print(data)
             model.train()
             if (not mask_defined) or (args.fix_train_mask == 0):
