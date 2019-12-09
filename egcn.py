@@ -30,7 +30,9 @@ class EGCNConv(MessagePassing):
         else:
             self.register_parameter('bias', None)
 
-        if self.edge_mode == 1:
+        if edge_mode == 0:
+            self.attention_lin = nn.Linear(2*out_channels+edge_channels, 1)
+        elif self.edge_mode == 1:
             self.message_lin = nn.Linear(2*out_channels+edge_channels, out_channels)
 
         self.reset_parameters()
@@ -87,14 +89,12 @@ class EGCNConv(MessagePassing):
 
     def message(self, x_i, x_j, edge_attr, norm):
         if self.edge_mode == 0:
-            assert edge_attr.shape[1] == 1
-            m_j = edge_attr * x_j
+            attention = self.attention_lin(torch.cat((x_i,x_j, edge_attr),dim=-1))
+            m_j = attention * x_j
         elif self.edge_mode == 1:
             m_j = torch.cat((x_i, x_j, edge_attr),dim=-1)
             m_j = self.message_lin(m_j)
-        # print(norm)
         return norm.view(-1, 1) * m_j
-        # return m_j
 
     def update(self, aggr_out, x):
         #print(aggr_out)

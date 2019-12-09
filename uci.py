@@ -96,20 +96,17 @@ def create_node(df):
     node = sample_node + feature_node.tolist()
     return node
 
-def get_dataset(uci_data="cancer", processed_df_file=None):
+def get_dataset(uci_data="cancer"):
     if uci_data == "cancer":
         df = pd.read_csv('https://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/wpbc.data',
                         header=None)
-        #df = df.drop(df.columns[[0, 1]], axis=1)
         df = process(df)
-        #nrow, ncol = df.shape
-    else:
-        df = pd.read_csv(processed_df_file)
+    elif uci_data == 'pks':
+        df = pd.read_csv('./parkinson.csv')
     edge_start, edge_end = create_edge(df)
     edge_index = torch.tensor([edge_start, edge_end], dtype=torch.float)
     edge_attr = torch.tensor(create_edge_attr(df), dtype=torch.float)
     node_init = create_node(df) 
-    #x = torch.tensor([[1] for x in range(nrow+ncol)], dtype=torch.float)
     x = torch.tensor(node_init, dtype=torch.float)
     # rev_edges = remove_edges(df, 90)
     data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr)

@@ -36,7 +36,7 @@ def train(dataset, args, log_path):
     # build optimizer
     scheduler, opt = build_optimizer(args, model.parameters())
     # build data loader
-    loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
+    # loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
 
     # train
     if args.mode == 'new':
@@ -52,15 +52,18 @@ def train(dataset, args, log_path):
         Valid_l1 = result.valid_l1
 
     mask_defined = False
-    best_valid_l1 = -np.inf
+    best_valid_l1 = np.inf
+    best_epoch = None
     for epoch in range(args.epochs):
         train_loss = 0.
         valid_mse = 0.
         valid_l1 = 0.
-        for data in loader: #dataset:
-        #[dataset]:
-        #loader:
-            #print(dataset)
+
+        if scheduler is not None:
+            scheduler.step(epoch)
+        # for param_group in opt.param_groups:
+        #     print('lr',param_group['lr'])
+        for data in dataset: #loader:
             #print(data)
             model.train()
             if (not mask_defined) or (args.fix_train_mask == 0):
@@ -68,6 +71,9 @@ def train(dataset, args, log_path):
                     print('loading train validation mask')
                     train_rate = 1-args.valid
                     train_mask_dir = log_path+'../len'+str(int(data.edge_attr.shape[0]/2))+'rate'+f"{train_rate:.1f}"+'seed0.npy'
+                    if not os.path.exists(train_mask_dir):
+                        from utils import save_mask
+                        save_mask(int(data.edge_attr.shape[0]/2),train_rate,log_path+'../',0)
                     print(train_mask_dir)
                     train_mask = np.load(train_mask_dir)
                     train_mask = torch.BoolTensor(train_mask).view(-1)
@@ -138,11 +144,13 @@ def train(dataset, args, log_path):
         print('valid mse: ',valid_mse)
         print('valid l1: ',valid_l1)
 
-        if valid_l1 > best_valid_l1:
+        if valid_l1 < best_valid_l1:
+            if best_epoch is not None:
+                os.remove(log_path+'best_ep'+str(best_epoch)+'l1'+f"{best_valid_l1:.5f}"+'.pt')
+            best_epoch = epoch
             best_valid_l1 = valid_l1
-            if args.save_mode == 'best':
-                torch.save(model.state_dict(), log_path+'best_ep'+str(epoch)+'l1'+f"{valid_l1:.5f}"+'.pt')
-        if args.save_mode == 'gap':
+            torch.save(model.state_dict(), log_path+'best_ep'+str(best_epoch)+'l1'+f"{best_valid_l1:.5f}"+'.pt')
+        if args.save_gap != 0:
             if epoch % args.save_gap == 0:
                 torch.save(model.state_dict(), log_path+'ep'+str(epoch)+'l1'+f"{valid_l1:.5f}"+'.pt')
 
@@ -171,8 +179,7 @@ def train(dataset, args, log_path):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--uci_data', type=str, default='pks') # 'pks', 'cancer'
-    parser.add_argument('--df_file', type=str, default='./parkinson.csv')
+    parser.add_argument('--uci_data', type=str, default='cancer') # 'pks', 'cancer'
     parser.add_argument('--mode', type=str, default='new')
     parser.add_argument('--gnn_type', type=str, default='GNN')
     parser.add_argument('--model_types', type=str, default='EGSAGE_EGSAGE_EGSAGE')
@@ -182,12 +189,12 @@ def main():
     parser.add_argument('--predict_mode', type=int, default=0) # 0: use node embd, 1: use edge embd 
     parser.add_argument('--update_edge', type=int, default=1)  # 1: yes, 0: no
     parser.add_argument('--batch_size', type=int, default=32) # doesn't matter here
-    parser.add_argument('--epochs', type=int, default=5000)
+    parser.add_argument('--epochs', type=int, default=20000)
     parser.add_argument('--opt', type=str, default='adam')
     parser.add_argument('--opt_scheduler', type=str, default='none')
     parser.add_argument('--opt_restart', type=int, default=0)
-    parser.add_argument('--opt_decay_step', type=int, default=0)
-    parser.add_argument('--opt_decay_rate', type=float, default=0)
+    parser.add_argument('--opt_decay_step', type=int, default=1000)
+    parser.add_argument('--opt_decay_rate', type=float, default=0.9)
     parser.add_argument('--dropout', type=float, default=0.)
     parser.add_argument('--weight_decay', type=float, default=0.)
     parser.add_argument('--lr', type=float, default=0.001)
@@ -196,17 +203,16 @@ def main():
     parser.add_argument('--fix_train_mask', type=int, default=1)  # 1: yes, 0: no
     parser.add_argument('--load_train_mask', type=int, default=1)  # 1: yes, 0: no
     parser.add_argument('--remove_unknown_edge', type=int, default=1)  # 1: yes, 0: no
-    parser.add_argument('--seed', type=int, default=4)
+    parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--log_dir', type=str, default='1')
     parser.add_argument('--data', type=str, default="uci")
-    parser.add_argument('--save_mode', type=str, default="last") #last, gap, best
-    parser.add_argument('--save_gap', type=int, default=1000)
+    parser.add_argument('--save_gap', type=int, default=0) # 0: not save by gap
     args = parser.parse_args()
     args.model_types = args.model_types.split('_')
 
     if args.mode == 'load':
         import joblib
-        load_path = './Data/uci/'+args.log_dir+'/'
+        load_path = './Data/uci/'+args.uci_data+'/'+args.log_dir+'/'
         result = joblib.load(load_path+'result.pkl')
         result = objectview(result)
         args = result.args
@@ -216,13 +222,9 @@ def main():
     np.random.seed(seed)
     torch.manual_seed(seed)
     
-    from uci import get_dataset, UCIDataset, SimDataset
-    #if args.data == "uci":
-    #   dataset = UCIDataset(root='/tmp/UCI')
-    #elif args.data == "simulated":
-    #   dataset = SimDataset(root='/tmp/SIM')
+    from uci import get_dataset
 
-    dataset = get_dataset(args.uci_data, args.df_file)
+    dataset = get_dataset(args.uci_data)
 
     log_path = './Data/uci/'+args.uci_data+'/'+args.log_dir+'/'
     if args.mode == 'new':
