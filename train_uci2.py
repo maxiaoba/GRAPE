@@ -61,6 +61,8 @@ def train(dataset, args, log_path):
 
         if scheduler is not None:
             scheduler.step(epoch)
+        # for param_group in opt.param_groups:
+        #     print('lr',param_group['lr'])
         for data in dataset: #loader:
             #print(data)
             model.train()
