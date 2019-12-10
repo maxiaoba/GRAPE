@@ -40,11 +40,19 @@ model.eval()
 
 mask_defined = False
 for data in dataset:
-    if (not mask_defined) or (args.fix_train_mask == 0):
-        from utils import get_mask
-        train_mask, known_mask, double_train_mask, double_known_mask = \
-            get_mask(train_args.valid,train_args.known,(train_args.load_train_mask==1),load_path+'../',data)
+    if (not mask_defined) or (train_args.fix_train_mask == 0):
+        from utils import get_train_mask
+        train_mask = \
+            get_train_mask(train_args.valid,(train_args.load_train_mask==1),load_path+'../',data)
     mask_defined = True
+    
+    known_mask = train_mask.clone().detach()
+    known_mask[train_mask] = (torch.FloatTensor(torch.sum(train_mask).item()).uniform_() < train_args.known)
+    # known mask is a mask that masks train mask
+
+    # now concat all masks by it self
+    double_train_mask = torch.cat((train_mask, train_mask),dim=0)
+    double_known_mask = torch.cat((known_mask, known_mask),dim=0)
     
     x = data.x.clone().detach()
     edge_attr = data.edge_attr.clone().detach()
