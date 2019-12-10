@@ -86,8 +86,6 @@ def train(dataset, args, log_path):
             from utils import mask_edge
             train_edge_index, train_edge_attr = mask_edge(edge_index,edge_attr,double_train_mask,(args.remove_unknown_edge == 1))
             known_edge_index, known_edge_attr = mask_edge(edge_index,edge_attr,double_known_mask,(args.remove_unknown_edge == 1))
-            print(np.sum(train_edge_attr.detach().numpy()))
-            print(np.sum(known_edge_attr.detach().numpy()))
 
             opt.zero_grad()
             pred = model(x, known_edge_attr, known_edge_index, edge_index[:,:int(edge_index.shape[1]/2)])

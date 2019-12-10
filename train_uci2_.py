@@ -110,8 +110,6 @@ def train(dataset, args, log_path):
                 known_edge_index = edge_index
                 known_edge_attr = edge_attr.clone().detach()
                 known_edge_attr[~double_known_mask] = 0.
-            print(np.sum(train_edge_attr.detach().numpy()))
-            print(np.sum(known_edge_attr.detach().numpy()))
 
             opt.zero_grad()
             pred = model(x, known_edge_attr, known_edge_index, edge_index[:,:int(edge_index.shape[1]/2)])
