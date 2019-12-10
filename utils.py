@@ -32,7 +32,7 @@ def save_mask(length,true_rate,log_dir,seed):
     np.save(osp.join(log_dir,'len'+str(length)+'rate'+str(true_rate)+'seed'+str(seed)),mask)
     return mask
 
-def get_mask(valid,known,load,load_path,data):
+def get_train_mask(valid,load,load_path,data):
     if load:
         print('loading train validation mask')
         train_rate = 1-valid
@@ -49,15 +49,7 @@ def get_mask(valid,known,load,load_path,data):
         #print(data.edge_attr.shape[0])
     #print(len(train_mask))
 
-    known_mask = train_mask.clone().detach()
-    known_mask[train_mask] = (torch.FloatTensor(torch.sum(train_mask).item()).uniform_() < known)
-    # known mask is a mask that masks train mask
-
-    # now concat all masks by it self
-    double_train_mask = torch.cat((train_mask, train_mask),dim=0)
-    double_known_mask = torch.cat((known_mask, known_mask),dim=0)
-
-    return train_mask, known_mask, double_train_mask, double_known_mask
+    return train_mask
 
 def mask_edge(edge_index,edge_attr,mask,remove_edge):
     edge_index = edge_index.clone().detach()
@@ -66,5 +58,5 @@ def mask_edge(edge_index,edge_attr,mask,remove_edge):
         edge_index = edge_index[:,mask]
         edge_attr = edge_attr[mask]
     else:
-        edge_attr[~ask] = 0.
+        edge_attr[~mask] = 0.
     return edge_index, edge_attr
