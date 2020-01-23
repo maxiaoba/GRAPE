@@ -97,18 +97,7 @@ def create_node(df):
     return node
 
 def get_dataset(uci_data="cancer"):
-    if uci_data == "cancer":
-        # df = pd.read_csv('https://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/wpbc.data',
-        #                 header=None)
-        # df = process(df)
-        # df.to_csv('./cancer.csv',index=None)
-        df = pd.read_csv('./cancer.csv')
-    elif uci_data == 'pks':
-        df = pd.read_csv('./parkinson.csv')
-    elif uci_data == 'housing':
-        df = pd.read_csv('./housing.csv')
-    elif uci_data == 'wine':
-        df = pd.read_csv('./wine.csv')
+    df = pd.read_csv('./'+uci_data+'/'+uci_data+'.csv')
     edge_start, edge_end = create_edge(df)
     edge_index = torch.tensor([edge_start, edge_end], dtype=int)
     edge_attr = torch.tensor(create_edge_attr(df), dtype=torch.float)
