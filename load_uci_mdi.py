@@ -24,13 +24,8 @@ plot_result(result, load_path)
 from uci import get_dataset
 dataset = get_dataset(args.uci_data)
 
-if train_args.gnn_type == 'GNN':
-    from models2 import GNNStack
-    model_cls = GNNStack
-elif train_args.gnn_type == 'GNN_SPLIT':
-    from models3 import GNNStackSplit
-    model_cls = GNNStackSplit
-model = model_cls(dataset[0].num_node_features, train_args.node_dim,
+from gnn_model import GNNStack
+model = GNNStack(dataset[0].num_node_features, train_args.node_dim,
                         train_args.edge_dim, train_args.edge_mode,
                         train_args.predict_mode,
                         (train_args.update_edge==1),

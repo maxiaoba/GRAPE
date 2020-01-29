@@ -17,14 +17,8 @@ from utils import build_optimizer, objectview
 
 def train(dataset, args, log_path):
     # build model
-    if args.gnn_type == 'GNN':
-        from models2 import GNNStack
-        model_cls = GNNStack
-    elif args.gnn_type == 'GNN_SPLIT':
-        from models3 import GNNStackSplit
-        model_cls = GNNStackSplit
-
-    model = model_cls(dataset[0].num_node_features, args.node_dim,
+    from gnn_model import GNNStack
+    model = GNNStack(dataset[0].num_node_features, args.node_dim,
                             args.edge_dim, args.edge_mode,
                             args.predict_mode,
                             (args.update_edge==1),
@@ -156,7 +150,6 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--uci_data', type=str, default='cancer') # 'pks', 'cancer', 'housing', 'wine'
     parser.add_argument('--mode', type=str, default='new')
-    parser.add_argument('--gnn_type', type=str, default='GNN')
     parser.add_argument('--model_types', type=str, default='EGSAGE_EGSAGE_EGSAGE')
     parser.add_argument('--node_dim', type=int, default=64)
     parser.add_argument('--edge_dim', type=int, default=64)

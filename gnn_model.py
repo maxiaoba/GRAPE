@@ -9,9 +9,7 @@ from egsage import EGraphSage
 
 class GNNStack(torch.nn.Module):
     def __init__(self, 
-                node_input_dim, node_dim,
-                edge_dim, edge_mode, predict_mode,
-                update_edge, 
+                node_input_dim, node_dim, edge_dim,
                 args):
         super(GNNStack, self).__init__()
         self.dropout = args.dropout
@@ -30,27 +28,7 @@ class GNNStack(torch.nn.Module):
             nn.Linear(node_dim, node_dim)
             )
 
-        # edge update
-        if self.update_edge:
-            self.edge_update_mlps = self.build_edge_update_mlps(node_dim, edge_dim, self.gnn_layer_num)
-
-        # edge prediction
-        self.predict_mode = predict_mode
-        if predict_mode == 0:
-            self.edge_predict_mlp = nn.Sequential(
-                nn.Linear(2*node_dim, node_dim), 
-                nn.ReLU(),
-                nn.Dropout(args.dropout), 
-                nn.Linear(node_dim, 1)
-                )
-        elif predict_mode == 1:
-            self.edge_predict_mlp = nn.Sequential(
-                nn.Linear(edge_dim, edge_dim), 
-                nn.ReLU(),
-                nn.Dropout(args.dropout), 
-                nn.Linear(edge_dim, 1)
-                )
-
+        self.edge_update_mlps = self.build_edge_update_mlps(node_dim, edge_dim, self.gnn_layer_num)
 
     def build_convs(self, node_input_dim, node_dim, edge_dim, edge_mode, model_types):
         convs = nn.ModuleList()
@@ -99,7 +77,7 @@ class GNNStack(torch.nn.Module):
         edge_attr = F.dropout(edge_attr, p=self.dropout, training=self.training)
         return edge_attr
 
-    def forward(self, x, edge_attr, edge_index, predict_edge_index, return_x=False):
+    def forward(self, x, edge_attr, edge_index):
         for l,(conv_name,conv) in enumerate(zip(self.model_types,self.convs)):
             # self.check_input(x,edge_attr,edge_index)
             if conv_name == 'EGCN' or conv_name == 'EGSAGE':
@@ -108,36 +86,31 @@ class GNNStack(torch.nn.Module):
                 x = conv(x, edge_index)
             x = F.relu(x)
             x = F.dropout(x, p=self.dropout, training=self.training)
-            if self.update_edge:
-                edge_attr = self.update_edge_attr(x, edge_attr, edge_index, self.edge_update_mlps[l])
+            edge_attr = self.update_edge_attr(x, edge_attr, edge_index, self.edge_update_mlps[l])
             #print(edge_attr.shape)
         x = self.node_post_mlp(x)
-        y = self.predict_edge(x, edge_attr, predict_edge_index)
         # self.check_input(x,edge_attr,edge_index)
-        if return_x:
-            return x,y
-        else:
-            return y
+        return x
 
-    def predict_edge(self, x, edge_attr, edge_index):
-        if self.predict_mode == 0:
-            x_i = x[edge_index[0],:]
-            x_j = x[edge_index[1],:]
-            x = torch.cat((x_i,x_j),dim=-1)
-        else:
-            assert edge_attr.shape[0] == edge_index.shape[1]
-            x = edge_attr
-        y = self.edge_predict_mlp(x)
-        return y
+    # def predict_edge(self, x, edge_attr, edge_index):
+    #     if self.predict_mode == 0:
+    #         x_i = x[edge_index[0],:]
+    #         x_j = x[edge_index[1],:]
+    #         x = torch.cat((x_i,x_j),dim=-1)
+    #     else:
+    #         assert edge_attr.shape[0] == edge_index.shape[1]
+    #         x = edge_attr
+    #     y = self.edge_predict_mlp(x)
+    #     return y
 
-    def loss(self, pred, label):
-        return F.mse_loss(pred, label)
+    # def loss(self, pred, label):
+    #     return F.mse_loss(pred, label)
 
-    def metric(self, pred, label, metric='mse'):
-        if metric == 'mse':
-            return F.mse_loss(pred, label)
-        elif metric == 'l1':
-            return F.l1_loss(pred, label)
+    # def metric(self, pred, label, metric='mse'):
+    #     if metric == 'mse':
+    #         return F.mse_loss(pred, label)
+    #     elif metric == 'l1':
+    #         return F.l1_loss(pred, label)
 
 
     def check_input(self, xs, edge_attr, edge_index):
