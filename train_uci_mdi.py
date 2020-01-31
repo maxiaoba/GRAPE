@@ -6,6 +6,7 @@ import networkx as nx
 import numpy as np
 import torch
 import torch.optim as optim
+import pandas as pd
 
 from torch_geometric.datasets import TUDataset
 from torch_geometric.datasets import Planetoid
@@ -15,16 +16,16 @@ import torch_geometric.nn as pyg_nn
 
 from utils import build_optimizer, objectview
 
-def train(dataset, args, log_path):
+def train(train_dataset, val_dataset, args, log_path):
     # build model
     if args.gnn_type == 'GNN':
-        from models2 import GNNStack
+        from models import GNNStack
         model_cls = GNNStack
     elif args.gnn_type == 'GNN_SPLIT':
-        from models3 import GNNStackSplit
+        from models import GNNStackSplit
         model_cls = GNNStackSplit
 
-    model = model_cls(dataset[0].num_node_features, args.node_dim,
+    model = model_cls(train_dataset[0].num_node_features, args.node_dim,
                             args.edge_dim, args.edge_mode,
                             args.predict_mode,
                             (args.update_edge==1),
@@ -63,8 +64,9 @@ def train(dataset, args, log_path):
             scheduler.step(epoch)
         # for param_group in opt.param_groups:
         #     print('lr',param_group['lr'])
-        for data in dataset: #loader:
+        for data in train_dataset: #loader:
             #print(data)
+            #print(data.y)
             model.train()
             if (not mask_defined) or (args.fix_train_mask == 0):
                 from utils import get_train_mask
@@ -80,9 +82,9 @@ def train(dataset, args, log_path):
             double_train_mask = torch.cat((train_mask, train_mask),dim=0)
             double_known_mask = torch.cat((known_mask, known_mask),dim=0)
 
-            x = data.x.clone().detach()
-            edge_attr = data.edge_attr.clone().detach()
-            edge_index = data.edge_index.clone().detach()
+            x = data.x #.clone.detach()
+            edge_attr = data.edge_attr #.clone().detach()
+            edge_index = data.edge_index #.clone().detach()
             from utils import mask_edge
             train_edge_index, train_edge_attr = mask_edge(edge_index,edge_attr,double_train_mask,(args.remove_unknown_edge == 1))
             known_edge_index, known_edge_attr = mask_edge(edge_index,edge_attr,double_known_mask,(args.remove_unknown_edge == 1))
@@ -98,6 +100,11 @@ def train(dataset, args, log_path):
             opt.step()
             train_loss += loss.item()
 
+        for data in val_dataset:
+            x = data.x #.clone.detach()
+            edge_attr = data.edge_attr #.clone().detach()
+            edge_index = data.edge_index #.clone().detach()
+
             model.eval()
             pred = model(x, train_edge_attr, train_edge_index, edge_index[:,:int(edge_index.shape[1]/2)])
             pred_valid = pred[~train_mask]
@@ -107,9 +114,9 @@ def train(dataset, args, log_path):
             l1 = model.metric(pred_valid, label_valid, 'l1')
             valid_l1 += l1.item()
 
-        train_loss /= len(dataset)
-        valid_mse /= len(dataset)
-        valid_l1 /= len(dataset)
+        train_loss /= len(train_dataset)
+        valid_mse /= len(val_dataset)
+        valid_l1 /= len(val_dataset)
 
         Train_loss.append(train_loss)
         Valid_mse.append(valid_mse)
@@ -198,12 +205,19 @@ def main():
     torch.manual_seed(seed)
     
     from uci import get_dataset
-    dataset = get_dataset(args.uci_data)
+    df = pd.read_csv('./Data/uci/'+ args.uci_data +"/"+ args.uci_data +'.csv')
+    msk = np.random.rand(len(df)) < 0.8
+    df_train = df[msk]
+    df_val = df[~msk]
+
+    train_dataset = get_dataset(df_train)
+    val_dataset = get_dataset(df_val)
 
     log_path = './Data/uci/'+args.uci_data+'/'+args.log_dir+'/'
     if args.mode == 'new':
         os.mkdir(log_path)
-    train(dataset, args, log_path) 
+
+    train(train_dataset, val_dataset, args, log_path) 
 
 if __name__ == '__main__':
     main()
