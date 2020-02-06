@@ -106,9 +106,8 @@ def train(train_dataset, val_dataset, args, log_path):
             edge_index = data.edge_index #.clone().detach()
 
             model.eval()
-            pred = model(x, train_edge_attr, train_edge_index, edge_index[:,:int(edge_index.shape[1]/2)])
-            pred_valid = pred[~train_mask]
-            label_valid = label[~train_mask]
+            pred_valid = model(x, edge_attr, edge_index, edge_index[:,:int(edge_index.shape[1]/2)])
+            label_valid = edge_attr[:int(edge_attr.shape[0]/2)]
             mse = model.metric(pred_valid, label_valid, 'mse')
             valid_mse += mse.item()
             l1 = model.metric(pred_valid, label_valid, 'l1')
