@@ -6,6 +6,7 @@ import networkx as nx
 import numpy as np
 import torch
 import torch.optim as optim
+import torch.nn.functional as F
 
 from torch_geometric.datasets import TUDataset
 from torch_geometric.datasets import Planetoid
@@ -20,13 +21,14 @@ def train(dataset, args, log_path):
     from gnn_model import GNNStack
     model = GNNStack(dataset[0].num_node_features, args.node_dim,
                             args.edge_dim, args.edge_mode,
-                            args.predict_mode,
-                            (args.update_edge==1),
-                            args)
+                            args.model_types, args.dropout)
+    from prediction_model import MLPNet
+    predict_model = MLPNet([args.node_dim, args.node_dim], 1, dropout=args.dropout)
 
     if args.mode == 'load':
         print('loading model param')
         model.load_state_dict(torch.load(log_path+'model.pt'))
+        predict_model.load_state_dict(torch.load(log_path+'predict_model.pt'))
     # build optimizer
     scheduler, opt = build_optimizer(args, model.parameters())
     # build data loader
@@ -60,6 +62,7 @@ def train(dataset, args, log_path):
         for data in dataset: #loader:
             #print(data)
             model.train()
+            predict_model.train()
             if (not mask_defined) or (args.fix_train_mask == 0):
                 from utils import get_train_mask
                 train_mask = \
@@ -82,23 +85,28 @@ def train(dataset, args, log_path):
             known_edge_index, known_edge_attr = mask_edge(edge_index,edge_attr,double_known_mask,(args.remove_unknown_edge == 1))
 
             opt.zero_grad()
-            pred = model(x, known_edge_attr, known_edge_index, edge_index[:,:int(edge_index.shape[1]/2)])
+            x_embd = model(x, known_edge_attr, known_edge_index)
+            predict_edge_index = edge_index[:,:int(edge_index.shape[1]/2)]
+            pred = predict_model([x_embd[predict_edge_index[0],:],x_embd[predict_edge_index[1],:]])
             label = edge_attr[:int(edge_attr.shape[0]/2)]
 
             pred_train = pred[train_mask]
             label_train = label[train_mask]
-            loss = model.loss(pred_train, label_train)
+            loss = F.mse_loss(pred_train, label_train)
             loss.backward()
             opt.step()
             train_loss += loss.item()
 
             model.eval()
-            pred = model(x, train_edge_attr, train_edge_index, edge_index[:,:int(edge_index.shape[1]/2)])
+            predict_model.eval()
+            x_embd = model(x, train_edge_attr, train_edge_index)
+            pred = predict_model([x_embd[predict_edge_index[0],:],x_embd[predict_edge_index[1],:]])
+
             pred_valid = pred[~train_mask]
             label_valid = label[~train_mask]
-            mse = model.metric(pred_valid, label_valid, 'mse')
+            mse = F.mse_loss(pred_valid, label_valid, 'mse')
             valid_mse += mse.item()
-            l1 = model.metric(pred_valid, label_valid, 'l1')
+            l1 = F.l1_loss(pred_valid, label_valid, 'l1')
             valid_l1 += l1.item()
 
         train_loss /= len(dataset)
@@ -141,6 +149,7 @@ def train(dataset, args, log_path):
     pickle.dump(obj, open(log_path+'result.pkl', "wb" ))
 
     torch.save(model.state_dict(), log_path+'model.pt')
+    torch.save(predict_model.state_dict(), log_path+'predict_model.pt')
 
     from plot_utils import plot_result
     obj = objectview(obj)
@@ -154,8 +163,6 @@ def main():
     parser.add_argument('--node_dim', type=int, default=64)
     parser.add_argument('--edge_dim', type=int, default=64)
     parser.add_argument('--edge_mode', type=int, default=1) # 0: use it as weight 1: as input to mlp
-    parser.add_argument('--predict_mode', type=int, default=0) # 0: use node embd, 1: use edge embd 
-    parser.add_argument('--update_edge', type=int, default=1)  # 1: yes, 0: no
     parser.add_argument('--batch_size', type=int, default=32) # doesn't matter here
     parser.add_argument('--epochs', type=int, default=20000)
     parser.add_argument('--opt', type=str, default='adam')

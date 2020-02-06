@@ -97,7 +97,7 @@ def create_node(df):
     return node
 
 def get_dataset(uci_data="cancer"):
-    df = pd.read_csv('./'+uci_data+'/'+uci_data+'.csv')
+    df = pd.read_csv('./Data/uci/'+uci_data+'/'+uci_data+'.csv')
     edge_start, edge_end = create_edge(df)
     edge_index = torch.tensor([edge_start, edge_end], dtype=int)
     edge_attr = torch.tensor(create_edge_attr(df), dtype=torch.float)

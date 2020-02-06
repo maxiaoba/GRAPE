@@ -3,7 +3,7 @@ import numpy as np
 import os.path as osp
 import torch
 
-def get_activateion(activation):
+def get_activation(activation):
     if activation == 'relu':
         return torch.nn.ReLU()
     elif activation is None:

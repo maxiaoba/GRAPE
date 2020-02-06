@@ -27,11 +27,14 @@ dataset = get_dataset(args.uci_data)
 from gnn_model import GNNStack
 model = GNNStack(dataset[0].num_node_features, train_args.node_dim,
                         train_args.edge_dim, train_args.edge_mode,
-                        train_args.predict_mode,
-                        (train_args.update_edge==1),
-                        train_args)
+                        train_args.model_types, train_args.dropout)
 model.load_state_dict(torch.load(load_path+'model.pt'))
 model.eval()
+
+from prediction_model import MLPNet
+predict_model = MLPNet([train_args.node_dim, train_args.node_dim], 1, dropout=train_args.dropout)
+predict_model.load_state_dict(torch.load(load_path+'predict_model.pt'))
+predict_model.eval()
 
 mask_defined = False
 for data in dataset:
@@ -56,7 +59,11 @@ for data in dataset:
     train_edge_index, train_edge_attr = mask_edge(edge_index,edge_attr,double_train_mask,(train_args.remove_unknown_edge == 1))
     known_edge_index, known_edge_attr = mask_edge(edge_index,edge_attr,double_known_mask,(train_args.remove_unknown_edge == 1))
 
-    xs, preds = model(x, train_edge_attr, train_edge_index, edge_index, return_x=True)
+    # xs, preds = model(x, train_edge_attr, train_edge_index, edge_index, return_x=True)
+    xs = model(x, train_edge_attr, train_edge_index)
+    predict_edge_index = edge_index[:,:int(edge_index.shape[1]/2)]
+    preds = predict_model([xs[predict_edge_index[0],:],xs[predict_edge_index[1],:]])
+
     Os = {}
     for indx in range(128):
         i=edge_index[0,indx].detach().numpy()

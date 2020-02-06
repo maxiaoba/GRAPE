@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from utils import get_activateion
+import numpy as np
+from utils import get_activation
 
 class MLPNet(torch.nn.Module):
     def __init__(self, 
@@ -9,10 +10,9 @@ class MLPNet(torch.nn.Module):
          		hidden_layer_sizes=(64,),
          		hidden_activation='relu',
          		output_activation=None,
-                args):
-        super(EdgePredictor, self).__init__()
+                dropout=0.):
+        super(MLPNet, self).__init__()
 
-        self.predict_mode = predict_mode
         self.hidden_activation = get_activation(hidden_activation)
         self.output_activation = get_activation(output_activation)
         layers = nn.ModuleList()
@@ -24,7 +24,7 @@ class MLPNet(torch.nn.Module):
         	layer = nn.Sequential(
         				nn.Linear(input_dim, hidden_dim),
         				self.hidden_activation,
-        				nn.Dropout(args.dropout),
+        				nn.Dropout(dropout),
         				)
         	layers.append(layer)
         	input_dim = hidden_dim
@@ -43,6 +43,26 @@ class MLPNet(torch.nn.Module):
     	for layer in self.layers:
     		input_var = layer(input_var)
     	return input_var
+
+    # def predict_edge(self, x, edge_attr, edge_index):
+    #     if self.predict_mode == 0:
+    #         x_i = x[edge_index[0],:]
+    #         x_j = x[edge_index[1],:]
+    #         x = torch.cat((x_i,x_j),dim=-1)
+    #     else:
+    #         assert edge_attr.shape[0] == edge_index.shape[1]
+    #         x = edge_attr
+    #     y = self.edge_predict_mlp(x)
+    #     return y
+
+    # def loss(self, pred, label):
+    #     return F.mse_loss(pred, label)
+
+    # def metric(self, pred, label, metric='mse'):
+    #     if metric == 'mse':
+    #         return F.mse_loss(pred, label)
+    #     elif metric == 'l1':
+    #         return F.l1_loss(pred, label)
 
 
 

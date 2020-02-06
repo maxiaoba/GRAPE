@@ -9,22 +9,22 @@ from egsage import EGraphSage
 
 class GNNStack(torch.nn.Module):
     def __init__(self, 
-                node_input_dim, node_dim, edge_dim,
-                args):
+                node_input_dim, node_dim,
+                edge_dim, edge_mode,
+                model_types, dropout):
         super(GNNStack, self).__init__()
-        self.dropout = args.dropout
-        self.model_types = args.model_types
-        self.gnn_layer_num = len(args.model_types)
-        self.update_edge = update_edge
+        self.dropout = dropout
+        self.model_types = model_types
+        self.gnn_layer_num = len(model_types)
 
         # convs
-        self.convs = self.build_convs(node_input_dim, node_dim, edge_dim, edge_mode, args.model_types)
+        self.convs = self.build_convs(node_input_dim, node_dim, edge_dim, edge_mode, model_types)
 
         # post node update
         self.node_post_mlp = nn.Sequential(
             nn.Linear(node_dim, node_dim), 
             nn.ReLU(),
-            nn.Dropout(args.dropout), 
+            nn.Dropout(dropout), 
             nn.Linear(node_dim, node_dim)
             )
 
@@ -91,27 +91,6 @@ class GNNStack(torch.nn.Module):
         x = self.node_post_mlp(x)
         # self.check_input(x,edge_attr,edge_index)
         return x
-
-    # def predict_edge(self, x, edge_attr, edge_index):
-    #     if self.predict_mode == 0:
-    #         x_i = x[edge_index[0],:]
-    #         x_j = x[edge_index[1],:]
-    #         x = torch.cat((x_i,x_j),dim=-1)
-    #     else:
-    #         assert edge_attr.shape[0] == edge_index.shape[1]
-    #         x = edge_attr
-    #     y = self.edge_predict_mlp(x)
-    #     return y
-
-    # def loss(self, pred, label):
-    #     return F.mse_loss(pred, label)
-
-    # def metric(self, pred, label, metric='mse'):
-    #     if metric == 'mse':
-    #         return F.mse_loss(pred, label)
-    #     elif metric == 'l1':
-    #         return F.l1_loss(pred, label)
-
 
     def check_input(self, xs, edge_attr, edge_index):
         Os = {}
