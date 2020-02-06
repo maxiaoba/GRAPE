@@ -40,24 +40,9 @@ def save_mask(length,true_rate,log_dir,seed):
     np.save(osp.join(log_dir,'len'+str(length)+'rate'+str(true_rate)+'seed'+str(seed)),mask)
     return mask
 
-def get_train_mask(valid,load,load_path,data):
-    if load:
-        print('loading train validation mask')
-        train_rate = 1-valid
-        train_mask_dir = load_path+'len'+str(int(data.edge_attr.shape[0]/2))+'rate'+f'{train_rate:.1f}'+'seed0.npy'
-        if not osp.exists(train_mask_dir):
-            from utils import save_mask
-            save_mask(int(data.edge_attr.shape[0]/2),train_rate,log_path+'../',0)
-        print(train_mask_dir)
-        train_mask = np.load(train_mask_dir)
-        train_mask = torch.BoolTensor(train_mask).view(-1)
-    else:
-        print('defining train validation mask')
-        train_mask = (torch.FloatTensor(int(data.edge_attr.shape[0]/2), 1).uniform_() < (1-valid)).view(-1)
-        #print(data.edge_attr.shape[0])
-    #print(len(train_mask))
-
-    return train_mask
+def get_known_mask(known, edge_num):
+    known_mask = (torch.FloatTensor(edge_num, 1).uniform_() < known).view(-1)
+    return known_mask
 
 def mask_edge(edge_index,edge_attr,mask,remove_edge):
     edge_index = edge_index.clone().detach()
