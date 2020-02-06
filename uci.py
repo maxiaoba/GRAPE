@@ -47,7 +47,7 @@ def get_dataset(df):
     node_init = create_node(df) 
     x = torch.tensor(node_init, dtype=torch.float)
     #generate random response for now
-    y = torch.tensor(np.random.normal(0,1,len(df)))
+    y = torch.tensor(np.random.normal(0,1,len(df)), dtype=torch.float)
     data = Data(x=x, y=y, edge_index=edge_index, edge_attr=edge_attr)
     return [data]
 

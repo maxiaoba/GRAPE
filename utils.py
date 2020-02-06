@@ -3,6 +3,14 @@ import numpy as np
 import os.path as osp
 import torch
 
+def get_activation(activation):
+    if activation == 'relu':
+        return torch.nn.ReLU()
+    elif activation is None:
+        return torch.nn. Identity()
+    else:
+        raise NotImplementedError
+
 def build_optimizer(args, params):
     weight_decay = args.weight_decay
     filter_fn = filter(lambda p : p.requires_grad, params)
