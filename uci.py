@@ -39,15 +39,14 @@ def create_node(df):
     node = sample_node + feature_node.tolist()
     return node
 
-def get_dataset(df):
+def get_dataset(df_X, df_y):
     #df = pd.read_csv('./Data/uci/'+ uci_data+"/"+uci_data+'.csv')
-    edge_start, edge_end = create_edge(df)
+    edge_start, edge_end = create_edge(df_X)
     edge_index = torch.tensor([edge_start, edge_end], dtype=int)
-    edge_attr = torch.tensor(create_edge_attr(df), dtype=torch.float)
-    node_init = create_node(df) 
+    edge_attr = torch.tensor(create_edge_attr(df_X), dtype=torch.float)
+    node_init = create_node(df_X) 
     x = torch.tensor(node_init, dtype=torch.float)
-    #generate random response for now
-    y = torch.tensor(np.random.normal(0,1,len(df)), dtype=torch.float)
+    y = torch.tensor(df_y[0].to_numpy(), dtype=torch.float)
     data = Data(x=x, y=y, edge_index=edge_index, edge_attr=edge_attr)
     return [data]
 
