@@ -3,6 +3,11 @@ import numpy as np
 import os.path as osp
 import torch
 
+def np_random(seed=None):
+    rng = np.random.RandomState()
+    rng.seed(seed)
+    return rng
+
 def get_activation(activation):
     if activation == 'relu':
         return torch.nn.ReLU()

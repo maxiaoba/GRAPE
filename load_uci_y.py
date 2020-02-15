@@ -8,7 +8,7 @@ from uci import get_dataset
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--uci_data', type=str, default='housing')
-parser.add_argument('--log_dir', type=str, default='0')
+parser.add_argument('--log_dir', type=str, default='y0')
 load_args = parser.parse_args()
 
 load_path = './Data/uci/'+load_args.uci_data+'/'+load_args.log_dir+'/'
@@ -35,52 +35,30 @@ model.load_state_dict(torch.load(load_path+'model.pt'))
 model.eval()
 
 from prediction_model import MLPNet
-predict_model = MLPNet([args.node_dim, args.node_dim], 1, dropout=args.dropout)
+predict_model = MLPNet([args.node_dim], 1, dropout=args.dropout)
 predict_model.load_state_dict(torch.load(load_path+'predict_model.pt'))
 predict_model.eval()
 
 for data in dataset:
     x = data.x.clone().detach()
+    y = data.y.clone().detach()
     train_edge_index = data.train_edge_index.clone().detach()
     train_edge_attr = data.train_edge_attr.clone().detach()
-    test_edge_index = data.test_edge_index.clone().detach()
-    test_edge_attr = data.test_edge_attr.clone().detach()
 
-    x_embd = model(x, train_edge_attr, train_edge_index)
-    pred = predict_model([x_embd[test_edge_index[0],:],x_embd[test_edge_index[1],:]])
-    pred_test = pred[:int(test_edge_attr.shape[0]/2)]
-    label_test = test_edge_attr[:int(test_edge_attr.shape[0]/2)]
-
-    Os = {}
-    for indx in range(20):
-        i=test_edge_index[0,indx].detach().numpy()
-        j=test_edge_index[1,indx].detach().numpy()
-        true=label_test[indx].detach().numpy()
-        pred=pred_test[indx].detach().numpy()
-        xi=x_embd[i].detach().numpy()
-        xj=x_embd[j].detach().numpy()
-        if str(i) not in Os.keys():
-            Os[str(i)] = {'true':[],'pred':[],'x_j':[]}
-        Os[str(i)]['true'].append(true)
-        Os[str(i)]['pred'].append(pred)
-        Os[str(i)]['x_i'] = xi
-        Os[str(i)]['x_j'] += list(xj)
+    x_embd = model(x, train_edge_attr, train_edge_index).detach()
+    pred = predict_model(x_embd)[:data.y.shape[0],0]
+    pred_test = pred[data.test_y_mask].detach()
+    label_test = y[data.test_y_mask].detach()
 
 import matplotlib.pyplot as plt
 plt.figure()
-plt.subplot(1,3,1)
-for i in Os.keys():
-    plt.plot(Os[str(i)]['pred'],label='o'+str(i)+'pred')
+plt.subplot(2,1,1)
+plt.plot(pred_test[::10],label='pred')
+plt.plot(label_test[::10],label='true')
 plt.legend()
-plt.subplot(1,3,2)
-for i in Os.keys():
-    plt.plot(Os[str(i)]['x_i'],label='o'+str(i)+'xi')
-    # print(Os[str(i)]['x_i'])
-plt.legend()
-plt.subplot(1,3,3)
-for i in Os.keys():
-    plt.plot(Os[str(i)]['x_j'],label='o'+str(i)+'xj')
-    # print(Os[str(i)]['x_j'])
+plt.subplot(2,1,2)
+for i in range(20):
+    plt.plot(x_embd[i,:],label=str(i))
 plt.legend()
 plt.savefig(load_path+'check_embedding.png')
 
