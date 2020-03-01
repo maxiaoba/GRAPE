@@ -67,7 +67,7 @@ def get_dataset(df_X, df_y, known_edge_prob, train_y_prob, seed=0):
     test_y_mask = ~train_y_mask
 
     data = Data(x=x, y=y, edge_index=edge_index, edge_attr=edge_attr,
-            train_y_mask=train_y_mask, test_y_mask=test_y_mask,
+            train_y_mask=train_y_mask, test_y_mask=test_y_mask, known_edge_mask = train_edge_mask,
             train_edge_index=train_edge_index,train_edge_attr=train_edge_attr,
             test_edge_index=test_edge_index,test_edge_attr=test_edge_attr)
     
