@@ -41,29 +41,36 @@ def create_node(df):
     node = sample_node + feature_node.tolist()
     return node
 
-def get_dataset(df_X, df_y, train_edge, train_y, seed=0):
-    #df = pd.read_csv('./Data/uci/'+ uci_data+"/"+uci_data+'.csv')
+def get_dataset(df_X, df_y, known_edge_prob, train_y_prob, seed=0):
     edge_start, edge_end = create_edge(df_X)
     edge_index = torch.tensor([edge_start, edge_end], dtype=int)
     edge_attr = torch.tensor(create_edge_attr(df_X), dtype=torch.float)
     node_init = create_node(df_X) 
     x = torch.tensor(node_init, dtype=torch.float)
     y = torch.tensor(df_y[0].to_numpy(), dtype=torch.float)
-    # data = Data(x=x, y=y, edge_index=edge_index, edge_attr=edge_attr)
+    
+    #set seed to fix known/unknwon edges
     torch.manual_seed(seed)
-    train_edge_mask = get_known_mask(train_edge,int(edge_attr.shape[0]/2))
-    double_train_edge_mask = torch.cat((train_edge_mask, train_edge_mask),dim=0)
-    train_edge_index, train_edge_attr = mask_edge(edge_index,edge_attr,
-                                                double_train_edge_mask,True)
-    test_edge_index, test_edge_attr = mask_edge(edge_index,edge_attr,
-                                                ~double_train_edge_mask,True)
+    #keep known_edge_prob of all edges
+    train_edge_mask = get_known_mask(known_edge_prob, int(edge_attr.shape[0]/2))
+    double_train_edge_mask = torch.cat((train_edge_mask, train_edge_mask), dim=0)
 
-    train_y_mask = get_known_mask(train_y, y.shape[0])
+    #mask edges based on the generated train_edge_mask
+    #train_edge_index is known, test_edge_index in unknwon, i.e. missing
+    train_edge_index, train_edge_attr = mask_edge(edge_index, edge_attr,
+                                                double_train_edge_mask, True)
+    test_edge_index, test_edge_attr = mask_edge(edge_index, edge_attr,
+                                                ~double_train_edge_mask, True)
+
+    #mask the y-values during training, i.e. how we split the training and test sets
+    train_y_mask = get_known_mask(train_y_prob, y.shape[0])
     test_y_mask = ~train_y_mask
 
     data = Data(x=x, y=y, edge_index=edge_index, edge_attr=edge_attr,
-            train_y_mask=train_y_mask,train_edge_index=train_edge_index,train_edge_attr=train_edge_attr,
-            test_y_mask=test_y_mask,test_edge_index=test_edge_index,test_edge_attr=test_edge_attr)
+            train_y_mask=train_y_mask, test_y_mask=test_y_mask,
+            train_edge_index=train_edge_index,train_edge_attr=train_edge_attr,
+            test_edge_index=test_edge_index,test_edge_attr=test_edge_attr)
+    
     return [data]
 
 
