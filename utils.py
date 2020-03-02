@@ -45,8 +45,8 @@ def save_mask(length,true_rate,log_dir,seed):
     np.save(osp.join(log_dir,'len'+str(length)+'rate'+str(true_rate)+'seed'+str(seed)),mask)
     return mask
 
-def get_known_mask(known, edge_num):
-    known_mask = (torch.FloatTensor(edge_num, 1).uniform_() < known).view(-1)
+def get_known_mask(known_prob, edge_num):
+    known_mask = (torch.FloatTensor(edge_num, 1).uniform_() < known_prob).view(-1)
     return known_mask
 
 def mask_edge(edge_index,edge_attr,mask,remove_edge):

@@ -41,7 +41,7 @@ def create_node(df):
     node = sample_node + feature_node.tolist()
     return node
 
-def get_dataset(df_X, df_y, known_edge_prob, train_y_prob, seed=0):
+def get_data(df_X, df_y, train_edge_prob, train_y_prob, seed=0):
     edge_start, edge_end = create_edge(df_X)
     edge_index = torch.tensor([edge_start, edge_end], dtype=int)
     edge_attr = torch.tensor(create_edge_attr(df_X), dtype=torch.float)
@@ -51,8 +51,8 @@ def get_dataset(df_X, df_y, known_edge_prob, train_y_prob, seed=0):
     
     #set seed to fix known/unknwon edges
     torch.manual_seed(seed)
-    #keep known_edge_prob of all edges
-    train_edge_mask = get_known_mask(known_edge_prob, int(edge_attr.shape[0]/2))
+    #keep train_edge_prob of all edges
+    train_edge_mask = get_known_mask(train_edge_prob, int(edge_attr.shape[0]/2))
     double_train_edge_mask = torch.cat((train_edge_mask, train_edge_mask), dim=0)
 
     #mask edges based on the generated train_edge_mask
@@ -67,10 +67,12 @@ def get_dataset(df_X, df_y, known_edge_prob, train_y_prob, seed=0):
     test_y_mask = ~train_y_mask
 
     data = Data(x=x, y=y, edge_index=edge_index, edge_attr=edge_attr,
-            train_y_mask=train_y_mask, test_y_mask=test_y_mask, known_edge_mask = train_edge_mask,
+            train_y_mask=train_y_mask, test_y_mask=test_y_mask,
+            train_edge_mask = train_edge_mask,
             train_edge_index=train_edge_index,train_edge_attr=train_edge_attr,
-            test_edge_index=test_edge_index,test_edge_attr=test_edge_attr)
+            test_edge_index=test_edge_index,test_edge_attr=test_edge_attr,
+            df_X=df_X,df_y=df_y)
     
-    return [data]
+    return data
 
 

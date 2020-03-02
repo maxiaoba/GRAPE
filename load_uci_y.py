@@ -35,7 +35,9 @@ model.load_state_dict(torch.load(load_path+'model.pt'))
 model.eval()
 
 from prediction_model import MLPNet
-predict_model = MLPNet([args.node_dim], 1, dropout=args.dropout)
+predict_model = MLPNet([args.node_dim], 1, 
+                        hidden_layer_sizes=args.predict_hiddens,
+                        dropout=args.dropout)
 predict_model.load_state_dict(torch.load(load_path+'predict_model.pt'))
 predict_model.eval()
 

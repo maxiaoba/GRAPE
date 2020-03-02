@@ -34,11 +34,6 @@ model = GNNStack(dataset[0].num_node_features, args.node_dim,
 model.load_state_dict(torch.load(load_path+'model.pt'))
 model.eval()
 
-from prediction_model import MLPNet
-predict_model = MLPNet([args.node_dim, args.node_dim], 1, dropout=args.dropout)
-predict_model.load_state_dict(torch.load(load_path+'predict_model.pt'))
-predict_model.eval()
-
 for data in dataset:
     x = data.x.clone().detach()
     train_edge_index = data.train_edge_index.clone().detach()

@@ -13,6 +13,7 @@ parser.add_argument('--seed', type=int, default=0)
 args = parser.parse_args()
 
 df_X = pd.read_csv('./Data/uci/'+ args.uci_data +"/"+ args.uci_data +'.csv')
+print(df_X)
 df_y = pd.read_csv('./Data/uci/'+ args.uci_data +"/"+ args.uci_data +'_target.csv', header=None)
 dataset = get_dataset(df_X, df_y, args.train_edge, args.train_y, args.seed)
 data = dataset[0]

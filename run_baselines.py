@@ -5,23 +5,23 @@ from sklearn import preprocessing
 
 from uci import get_dataset
 
-def construct_missing_X(missing_list, df):
+def construct_missing_X(train_mask, df):
     nrow, ncol = df.shape
     data_incomplete = np.zeros((nrow, ncol))
-    data_complete = np.zeros((nrow, ncol))
-    missing_ind = missing_list.reshape(nrow, ncol)
+    data_complete = np.zeros((nrow, ncol)) 
+    train_mask = train_mask.reshape(nrow, ncol)
     for i in range(nrow):
         for j in range(ncol):
             data_complete[i,j] = df.iloc[i,j]
-            if missing_ind[i,j]:
+            if train_mask[i,j]:
                 data_incomplete[i,j] = df.iloc[i,j]
             else:
                 data_incomplete[i,j] = np.NaN
     return data_complete, data_incomplete
 
-def impute_baselines(df, missing):
-    X, X_incomplete = construct_missing_X(missing, df)
-    n_missing = len(missing) - sum(missing)
+def impute_baselines(df, train_mask):
+    X, X_incomplete = construct_missing_X(train_mask, df)
+    n_missing = len(train_mask) - sum(train_mask)
     
     X_filled_mean = SimpleFill().fit_transform(X_incomplete)
     MAE_mean = sum(sum(abs(X_filled_mean - X))) / n_missing
@@ -46,10 +46,10 @@ def impute_baselines(df, missing):
     return (X_filled_mean, X_filled_knn, X_filled_svd, X_filled_mice)
 
 df_X = pd.read_csv('./Data/uci/housing/housing.csv')
-df_y = pd.read_csv('./Data/uci/housing/housing.csv', header=None)
+df_y = pd.read_csv('./Data/uci/housing/housing_target.csv', header=None)
 dataset = get_dataset(df_X, df_y, 0.7, 0.7, 0)
-missing_ind = dataset[0].known_edge_mask.numpy()
+train_mask = dataset[0].train_edge_mask.numpy()
 
 #X, X_incomplete = construct_missing_X(missing, df)
-X_mean, X_knn, X_svd, X_mice = impute_baselines(df_X, missing_ind)
+X_mean, X_knn, X_svd, X_mice = impute_baselines(df_X, train_mask)
 print(X_mice)
