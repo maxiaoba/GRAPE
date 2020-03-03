@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import argparse
 from utils import objectview
 import pandas as pd
-from uci import get_dataset
+from uci import get_data
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--uci_data', type=str, default='housing')
@@ -25,7 +25,7 @@ plot_result(result, load_path)
 
 df_X = pd.read_csv('./Data/uci/'+ args.uci_data +"/"+ args.uci_data +'.csv')
 df_y = pd.read_csv('./Data/uci/'+ args.uci_data +"/"+ args.uci_data +'_target.csv', header=None)
-dataset = get_dataset(df_X, df_y, args.train_edge, args.train_y, args.seed)
+data = get_data(df_X, df_y, args.train_edge, args.train_y, args.seed)
 
 from gnn_model import GNNStack
 model = GNNStack(dataset[0].num_node_features, args.node_dim,
@@ -34,32 +34,31 @@ model = GNNStack(dataset[0].num_node_features, args.node_dim,
 model.load_state_dict(torch.load(load_path+'model.pt'))
 model.eval()
 
-for data in dataset:
-    x = data.x.clone().detach()
-    train_edge_index = data.train_edge_index.clone().detach()
-    train_edge_attr = data.train_edge_attr.clone().detach()
-    test_edge_index = data.test_edge_index.clone().detach()
-    test_edge_attr = data.test_edge_attr.clone().detach()
+x = data.x.clone().detach()
+train_edge_index = data.train_edge_index.clone().detach()
+train_edge_attr = data.train_edge_attr.clone().detach()
+test_edge_index = data.test_edge_index.clone().detach()
+test_edge_attr = data.test_edge_attr.clone().detach()
 
-    x_embd = model(x, train_edge_attr, train_edge_index)
-    pred = predict_model([x_embd[test_edge_index[0],:],x_embd[test_edge_index[1],:]])
-    pred_test = pred[:int(test_edge_attr.shape[0]/2)]
-    label_test = test_edge_attr[:int(test_edge_attr.shape[0]/2)]
+x_embd = model(x, train_edge_attr, train_edge_index)
+pred = predict_model([x_embd[test_edge_index[0],:],x_embd[test_edge_index[1],:]])
+pred_test = pred[:int(test_edge_attr.shape[0]/2)]
+label_test = test_edge_attr[:int(test_edge_attr.shape[0]/2)]
 
-    Os = {}
-    for indx in range(20):
-        i=test_edge_index[0,indx].detach().numpy()
-        j=test_edge_index[1,indx].detach().numpy()
-        true=label_test[indx].detach().numpy()
-        pred=pred_test[indx].detach().numpy()
-        xi=x_embd[i].detach().numpy()
-        xj=x_embd[j].detach().numpy()
-        if str(i) not in Os.keys():
-            Os[str(i)] = {'true':[],'pred':[],'x_j':[]}
-        Os[str(i)]['true'].append(true)
-        Os[str(i)]['pred'].append(pred)
-        Os[str(i)]['x_i'] = xi
-        Os[str(i)]['x_j'] += list(xj)
+Os = {}
+for indx in range(20):
+    i=test_edge_index[0,indx].detach().numpy()
+    j=test_edge_index[1,indx].detach().numpy()
+    true=label_test[indx].detach().numpy()
+    pred=pred_test[indx].detach().numpy()
+    xi=x_embd[i].detach().numpy()
+    xj=x_embd[j].detach().numpy()
+    if str(i) not in Os.keys():
+        Os[str(i)] = {'true':[],'pred':[],'x_j':[]}
+    Os[str(i)]['true'].append(true)
+    Os[str(i)]['pred'].append(pred)
+    Os[str(i)]['x_i'] = xi
+    Os[str(i)]['x_j'] += list(xj)
 
 import matplotlib.pyplot as plt
 plt.figure()

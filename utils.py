@@ -58,3 +58,17 @@ def mask_edge(edge_index,edge_attr,mask,remove_edge):
     else:
         edge_attr[~mask] = 0.
     return edge_index, edge_attr
+
+def construct_missing_X(train_mask, df):
+    nrow, ncol = df.shape
+    data_incomplete = np.zeros((nrow, ncol))
+    data_complete = np.zeros((nrow, ncol)) 
+    train_mask = train_mask.reshape(nrow, ncol)
+    for i in range(nrow):
+        for j in range(ncol):
+            data_complete[i,j] = df.iloc[i,j]
+            if train_mask[i,j]:
+                data_incomplete[i,j] = df.iloc[i,j]
+            else:
+                data_incomplete[i,j] = np.NaN
+    return data_complete, data_incomplete

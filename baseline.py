@@ -2,20 +2,7 @@ from fancyimpute import SimpleFill, KNN, IterativeImputer, IterativeSVD
 import numpy as np
 import pandas as pd
 from sklearn import preprocessing
-
-def construct_missing_X(train_mask, df):
-    nrow, ncol = df.shape
-    data_incomplete = np.zeros((nrow, ncol))
-    data_complete = np.zeros((nrow, ncol)) 
-    train_mask = train_mask.reshape(nrow, ncol)
-    for i in range(nrow):
-        for j in range(ncol):
-            data_complete[i,j] = df.iloc[i,j]
-            if train_mask[i,j]:
-                data_incomplete[i,j] = df.iloc[i,j]
-            else:
-                data_incomplete[i,j] = np.NaN
-    return data_complete, data_incomplete
+from utils import construct_missing_X
 
 def baseline_inpute(data,method='mean'):
     train_mask = data.train_edge_mask.numpy()
