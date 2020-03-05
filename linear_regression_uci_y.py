@@ -38,6 +38,7 @@ def train(data, args):
 
     y = data.y.detach().numpy()
     train_y_mask = data.train_y_mask.clone().detach()
+    # print(torch.sum(train_y_mask))
     test_y_mask = data.test_y_mask.clone().detach()
     y_train = y[train_y_mask]
     y_test = y[test_y_mask]
@@ -53,13 +54,15 @@ def train(data, args):
                                 model_args.model_types, model_args.dropout)
         model.load_state_dict(torch.load(load_path+'model.pt'))
         model.eval()
-        predict_model = MLPNet([model_args.node_dim, model_args.node_dim], 1, dropout=model_args.dropout)
-        predict_model.load_state_dict(torch.load(load_path+'predict_model.pt'))
-        predict_model.eval()
+        impute_model = MLPNet([model_args.node_dim, model_args.node_dim], 1,
+                                hidden_layer_sizes=model_args.impute_hiddens, 
+                                dropout=model_args.dropout)
+        impute_model.load_state_dict(torch.load(load_path+'impute_model.pt'))
+        impute_model.eval()
 
         x_embd = model(x, train_edge_attr, train_edge_index)
         # X = x_embd.detach().numpy()[:y.shape[0],:]
-        x_pred = predict_model([x_embd[test_edge_index[0],:],x_embd[test_edge_index[1],:]])
+        x_pred = impute_model([x_embd[test_edge_index[0],:],x_embd[test_edge_index[1],:]])
         x_pred = x_pred[:int(test_edge_attr.shape[0]/2)]
         X_true, X_incomplete = construct_missing_X(train_edge_mask, data.df_X)
         X = X_incomplete
@@ -67,7 +70,7 @@ def train(data, args):
             assert X_true[test_edge_index[0,i],test_edge_index[1,i]-y.shape[0]] == test_edge_attr[i]
             X[test_edge_index[0,i],test_edge_index[1,i]-y.shape[0]] = x_pred[i]
     else:
-        X, impute_mae = baseline_inpute(data, args.method)
+        X = baseline_inpute(data, args.method)
 
     reg = LinearRegression().fit(X[train_y_mask,:], y_train)
     # print(reg.score(X[test_y_mask,:], y_test))

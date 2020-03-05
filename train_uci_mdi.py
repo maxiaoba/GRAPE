@@ -29,26 +29,17 @@ def train(data, args, log_path):
     model = GNNStack(data.num_node_features, args.node_dim,
                             args.edge_dim, args.edge_mode,
                             args.model_types, args.dropout)
-    predict_model = MLPNet([args.node_dim, args.node_dim], 1, dropout=args.dropout)
+    impute_model = MLPNet([args.node_dim, args.node_dim], 1, 
+                            hidden_layer_sizes=args.impute_hiddens,
+                            dropout=args.dropout)
 
-    if args.mode == 'load':
-        print('loading model param')
-        model.load_state_dict(torch.load(log_path+'model.pt'))
-        predict_model.load_state_dict(torch.load(log_path+'predict_model.pt'))
     # build optimizer
     scheduler, opt = build_optimizer(args, model.parameters())
 
     # train
-    if args.mode == 'new':
-        Train_loss = []
-        Valid_mse = []
-        Valid_l1 = []
-    elif args.mode == 'load':
-        result = joblib.load(log_path+'result.pkl')
-        result = objectview(result)
-        Train_loss = result.train_loss
-        Valid_mse = result.test_mse
-        Valid_l1 = result.test_l1
+    Train_loss = []
+    Valid_mse = []
+    Valid_l1 = []
 
     best_test_l1 = np.inf
     best_epoch = None
@@ -66,7 +57,7 @@ def train(data, args, log_path):
         #     print('lr',param_group['lr'])
 
         model.train()
-        predict_model.train()
+        impute_model.train()
 
         known_mask = get_known_mask(args.known,int(train_edge_attr.shape[0]/2))
         # now concat all masks by it self
@@ -75,7 +66,7 @@ def train(data, args, log_path):
 
         opt.zero_grad()
         x_embd = model(x, known_edge_attr, known_edge_index)
-        pred = predict_model([x_embd[train_edge_index[0],:],x_embd[train_edge_index[1],:]])
+        pred = impute_model([x_embd[train_edge_index[0],:],x_embd[train_edge_index[1],:]])
         pred_train = pred[:int(train_edge_attr.shape[0]/2)]
         label_train = train_edge_attr[:int(train_edge_attr.shape[0]/2)]
 
@@ -85,10 +76,10 @@ def train(data, args, log_path):
         train_loss = loss.item()
 
         model.eval()
-        predict_model.eval()
+        impute_model.eval()
 
         x_embd = model(x, train_edge_attr, train_edge_index)
-        pred = predict_model([x_embd[test_edge_index[0],:],x_embd[test_edge_index[1],:]])
+        pred = impute_model([x_embd[test_edge_index[0],:],x_embd[test_edge_index[1],:]])
         pred_test = pred[:int(test_edge_attr.shape[0]/2)]
         label_test = test_edge_attr[:int(test_edge_attr.shape[0]/2)]
         mse = F.mse_loss(pred_test, label_test, 'mse')
@@ -103,16 +94,6 @@ def train(data, args, log_path):
         print('loss: ',train_loss)
         print('test mse: ',test_mse)
         print('test l1: ',test_l1)
-
-        if test_l1 < best_test_l1:
-            if best_epoch is not None:
-                os.remove(log_path+'best_ep'+str(best_epoch)+'l1_'+f"{best_test_l1:.5f}"+'.pt')
-            best_epoch = epoch
-            best_test_l1 = test_l1
-            torch.save(model.state_dict(), log_path+'best_ep'+str(best_epoch)+'l1_'+f"{best_test_l1:.5f}"+'.pt')
-        if args.save_gap != 0:
-            if epoch % args.save_gap == 0:
-                torch.save(model.state_dict(), log_path+'ep'+str(epoch)+'l1_'+f"{test_l1:.5f}"+'.pt')
 
     pred_train = pred_train.detach().numpy()
     label_train = label_train.detach().numpy()
@@ -131,7 +112,7 @@ def train(data, args, log_path):
     pickle.dump(obj, open(log_path+'result.pkl', "wb" ))
 
     torch.save(model.state_dict(), log_path+'model.pt')
-    torch.save(predict_model.state_dict(), log_path+'predict_model.pt')
+    torch.save(impute_model.state_dict(), log_path+'impute_model.pt')
 
     obj = objectview(obj)
     plot_result(obj, log_path)
@@ -139,11 +120,11 @@ def train(data, args, log_path):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--uci_data', type=str, default='housing') # 'pks', 'cancer', 'housing', 'wine'
-    parser.add_argument('--mode', type=str, default='new')
     parser.add_argument('--model_types', type=str, default='EGSAGE_EGSAGE_EGSAGE')
     parser.add_argument('--node_dim', type=int, default=64)
     parser.add_argument('--edge_dim', type=int, default=64)
     parser.add_argument('--edge_mode', type=int, default=1) # 0: use it as weight 1: as input to mlp
+    parser.add_argument('--impute_hiddens', type=str, default='64')
     parser.add_argument('--epochs', type=int, default=20000)
     parser.add_argument('--opt', type=str, default='adam')
     parser.add_argument('--opt_scheduler', type=str, default='none')
@@ -158,16 +139,12 @@ def main():
     parser.add_argument('--known', type=float, default=0.7)
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--log_dir', type=str, default='0')
-    parser.add_argument('--save_gap', type=int, default=0) # 0: not save by gap
     args = parser.parse_args()
     args.model_types = args.model_types.split('_')
-
-    if args.mode == 'load':
-        load_path = './Data/uci/'+args.uci_data+'/'+args.log_dir+'/'
-        result = joblib.load(load_path+'result.pkl')
-        result = objectview(result)
-        args = result.args
-        args.mode = 'load'
+    if args.impute_hiddens == '':
+        args.impute_hiddens = []
+    else:
+        args.impute_hiddens = list(map(int,args.impute_hiddens.split('_')))
 
     seed = args.seed
     np.random.seed(seed)
@@ -178,8 +155,7 @@ def main():
     data = get_data(df_X, df_y, args.train_edge, args.train_y, args.seed)
 
     log_path = './Data/uci/'+args.uci_data+'/'+args.log_dir+'/'
-    if args.mode == 'new':
-        os.mkdir(log_path)
+    os.mkdir(log_path)
 
     train(data, args, log_path) 
 

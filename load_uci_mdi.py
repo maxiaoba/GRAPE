@@ -28,11 +28,17 @@ df_y = pd.read_csv('./Data/uci/'+ args.uci_data +"/"+ args.uci_data +'_target.cs
 data = get_data(df_X, df_y, args.train_edge, args.train_y, args.seed)
 
 from gnn_model import GNNStack
-model = GNNStack(dataset[0].num_node_features, args.node_dim,
+model = GNNStack(data.num_node_features, args.node_dim,
                         args.edge_dim, args.edge_mode,
                         args.model_types, args.dropout)
 model.load_state_dict(torch.load(load_path+'model.pt'))
 model.eval()
+from prediction_model import MLPNet
+impute_model = MLPNet([args.node_dim, args.node_dim],
+                        hidden_layer_sizes=args.impute_hiddens, 
+                        dropout=args.dropout)
+impute_model.load_state_dict(torch.load(load_path+'impute_model.pt'))
+impute_model.eval()
 
 x = data.x.clone().detach()
 train_edge_index = data.train_edge_index.clone().detach()
@@ -41,7 +47,7 @@ test_edge_index = data.test_edge_index.clone().detach()
 test_edge_attr = data.test_edge_attr.clone().detach()
 
 x_embd = model(x, train_edge_attr, train_edge_index)
-pred = predict_model([x_embd[test_edge_index[0],:],x_embd[test_edge_index[1],:]])
+pred = impute_model([x_embd[test_edge_index[0],:],x_embd[test_edge_index[1],:]])
 pred_test = pred[:int(test_edge_attr.shape[0]/2)]
 label_test = test_edge_attr[:int(test_edge_attr.shape[0]/2)]
 

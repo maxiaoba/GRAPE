@@ -8,11 +8,10 @@ from uci import get_data
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--uci_data', type=str, default='housing')
-parser.add_argument('--method', type=str, default='mean')
 parser.add_argument('--log_dir', type=str, default='y0')
 load_args = parser.parse_args()
 
-load_path = './Data/uci/'+load_args.uci_data+'/'+load_args.method+'_'+load_args.log_dir+'/'
+load_path = './Data/uci/'+load_args.uci_data+'/'+load_args.log_dir+'/'
 
 import joblib
 result = joblib.load(load_path+'result.pkl')
@@ -28,19 +27,27 @@ df_X = pd.read_csv('./Data/uci/'+ args.uci_data +"/"+ args.uci_data +'.csv')
 df_y = pd.read_csv('./Data/uci/'+ args.uci_data +"/"+ args.uci_data +'_target.csv', header=None)
 data = get_data(df_X, df_y, args.train_edge, args.train_y, args.seed)
 
+from gnn_model import GNNStack
+model = GNNStack(data.num_node_features, args.node_dim,
+                        args.edge_dim, args.edge_mode,
+                        args.model_types, args.dropout)
+model.load_state_dict(torch.load(load_path+'model.pt'))
+model.eval()
+
 from prediction_model import MLPNet
-predict_model = MLPNet([args.node_dim, args.node_dim],
-                        hidden_layer_sizes=args.impute_hiddens, 
+predict_model = MLPNet([args.node_dim], 1, 
+                        hidden_layer_sizes=args.predict_hiddens,
                         dropout=args.dropout)
 predict_model.load_state_dict(torch.load(load_path+'predict_model.pt'))
 predict_model.eval()
 
+x = data.x.clone().detach()
 y = data.y.clone().detach()
+train_edge_index = data.train_edge_index.clone().detach()
+train_edge_attr = data.train_edge_attr.clone().detach()
 
-from baseline import baseline_inpute
-x_embd, impute_mae = baseline_inpute(data, args.method)
-x_embd = torch.tensor(x_embd).float()
-pred = predict_model(x_embd)[:,0]
+x_embd = model(x, train_edge_attr, train_edge_index).detach()
+pred = predict_model(x_embd)[:data.y.shape[0],0]
 pred_test = pred[data.test_y_mask].detach()
 label_test = y[data.test_y_mask].detach()
 

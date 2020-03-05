@@ -72,3 +72,8 @@ def construct_missing_X(train_mask, df):
             else:
                 data_incomplete[i,j] = np.NaN
     return data_complete, data_incomplete
+
+def get_impute_mae(X, X_filled, n_missing):
+    diff = X - X_filled
+    MAE = sum(sum(abs(diff))) / n_missing
+    return MAE

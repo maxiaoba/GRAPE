@@ -9,24 +9,22 @@ import torch.nn.functional as F
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--uci_data', type=str, default='housing')
-parser.add_argument('--log_dir', type=str, default='y0')
+parser.add_argument('--train_edge', type=float, default=0.7)
+parser.add_argument('--train_y', type=float, default=0.7)
+parser.add_argument('--load_dir', type=str, default='y0')
+parser.add_argument('--seed', type=int, default=0)
 load_args = parser.parse_args()
 
-load_path = './Data/uci/'+load_args.uci_data+'/'+load_args.log_dir+'/'
+load_path = './Data/uci/'+load_args.uci_data+'/'+load_args.load_dir+'/'
 
 import joblib
 result = joblib.load(load_path+'result.pkl')
 result = objectview(result)
 args = result.args
-for key in args.__dict__.keys():
-    print(key,': ',args.__dict__[key])
-
-from plot_utils import plot_result
-plot_result(result, load_path)
 
 df_X = pd.read_csv('./Data/uci/'+ args.uci_data +"/"+ args.uci_data +'.csv')
 df_y = pd.read_csv('./Data/uci/'+ args.uci_data +"/"+ args.uci_data +'_target.csv', header=None)
-data = get_data(df_X, df_y, args.train_edge, args.train_y, args.seed)
+data = get_data(df_X, df_y, load_args.train_edge, load_args.train_y, load_args.seed)
 n_row, n_col = data.df_X.shape
 x = data.x.clone().detach()
 y = data.y.clone().detach()
@@ -43,7 +41,7 @@ model = GNNStack(data.num_node_features, args.node_dim,
 model.load_state_dict(torch.load(load_path+'model.pt'))
 model.eval()
 from prediction_model import MLPNet
-impute_model = MLPNet([args.node_dim, args.node_dim],
+impute_model = MLPNet([args.node_dim, args.node_dim], 1,
                         hidden_layer_sizes=args.impute_hiddens, 
                         dropout=args.dropout)
 impute_model.load_state_dict(torch.load(load_path+'impute_model.pt'))
@@ -61,16 +59,9 @@ X = torch.reshape(X, [n_row, n_col])
 pred = predict_model(X)[:,0]
 pred_test = pred[test_y_mask]
 label_test = y[test_y_mask]
-
-import matplotlib.pyplot as plt
-plt.figure()
-plt.subplot(2,1,1)
-plt.plot(pred_test.detach().numpy()[::10],label='pred')
-plt.plot(label_test.detach().numpy()[::10],label='true')
-plt.legend()
-plt.subplot(2,1,2)
-for i in range(20):
-    plt.plot(x_embd.detach().numpy()[i,:],label=str(i))
-plt.legend()
-plt.savefig(load_path+'check_embedding.png')
+mse = F.mse_loss(pred_test, label_test, 'mse')
+test_mse = mse.item()
+l1 = F.l1_loss(pred_test, label_test, 'l1')
+test_l1 = l1.item()
+print("mse: ",test_mse," l1: ",test_l1)
 
