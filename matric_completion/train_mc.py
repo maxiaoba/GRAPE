@@ -138,6 +138,9 @@ def main():
     parser.add_argument('--data-name', default='douban', help='dataset name')
     parser.add_argument('--seed', type=int, default=1, metavar='S',
                         help='random seed (default: 1)')
+    parser.add_argument('--data-seed', type=int, default=1234, metavar='S',
+                        help='seed to shuffle data (1234,2341,3412,4123,1324 are used), \
+                        valid only for ml_1m and ml_10m')
     parser.add_argument('--use-features', action='store_true', default=False,
                         help='whether to use node features (side information)')
     parser.add_argument('--standard-rating', action='store_true', default=False,
@@ -182,6 +185,16 @@ def main():
         else:
             rating_map = None
 
+    if args.data_name == 'ml_1m' or args.data_name == 'ml_10m':
+        if args.use_features:
+            datasplit_path = 'raw_data/' + args.data_name + '/withfeatures_split_seed' + str(args.data_seed) + '.pickle'
+        else:
+            datasplit_path = 'raw_data/' + args.data_name + '/split_seed' + str(args.data_seed) + '.pickle'
+    elif args.use_features:
+        datasplit_path = 'raw_data/' + args.data_name + '/withfeatures.pickle'
+    else:
+        datasplit_path = 'raw_data/' + args.data_name + '/nofeatures.pickle'
+
     if args.data_name == 'flixster' or args.data_name == 'douban' or args.data_name == 'yahoo_music':
         u_features, v_features, adj_train, train_labels, train_u_indices, train_v_indices, \
             val_labels, val_u_indices, val_v_indices, test_labels, \
@@ -195,7 +208,7 @@ def main():
         print("Using random dataset split ...")
         u_features, v_features, adj_train, train_labels, train_u_indices, train_v_indices, \
             val_labels, val_u_indices, val_v_indices, test_labels, \
-            test_u_indices, test_v_indices, class_values = create_trainvaltest_split(args.data_name, 1234, args.testing, datasplit_path, True, True, rating_map, post_rating_map, args.ratio)
+            test_u_indices, test_v_indices, class_values = create_trainvaltest_split(args.data_name, args.data_seed, args.testing, datasplit_path, True, True, rating_map, post_rating_map, args.ratio)
 
     print('All ratings are:')
     print(class_values)
