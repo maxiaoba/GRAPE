@@ -140,6 +140,12 @@ def main():
                         help='random seed (default: 1)')
     parser.add_argument('--use-features', action='store_true', default=False,
                         help='whether to use node features (side information)')
+    parser.add_argument('--standard-rating', action='store_true', default=False,
+                        help='if True, maps all ratings to standard 1, 2, 3, 4, 5 before training')
+    # sparsity experiment settings
+    parser.add_argument('--ratio', type=float, default=1.0,
+                        help="For ml datasets, if ratio < 1, downsample training data to the\
+                        target ratio")
     parser.add_argument('--model_types', type=str, default='EGSAGE_EGSAGE_EGSAGE')
     parser.add_argument('--node_dim', type=int, default=64)
     parser.add_argument('--edge_dim', type=int, default=64)
@@ -168,10 +174,28 @@ def main():
     np.random.seed(args.seed)
 
     rating_map, post_rating_map = None, None
+    if args.standard_rating:
+        if args.data_name in ['flixster', 'ml_10m']: # original 0.5, 1, ..., 5
+            rating_map = {x: int(math.ceil(x)) for x in np.arange(0.5, 5.01, 0.5).tolist()}
+        elif args.data_name == 'yahoo_music':  # original 1, 2, ..., 100
+            rating_map = {x: (x-1)//20+1 for x in range(1, 101)}
+        else:
+            rating_map = None
 
-    u_features, v_features, adj_train, train_labels, train_u_indices, train_v_indices, \
-        val_labels, val_u_indices, val_v_indices, test_labels, \
-        test_u_indices, test_v_indices, class_values = load_data_monti(args.data_name, args.seed, args.testing, rating_map, post_rating_map)
+    if args.data_name == 'flixster' or args.data_name == 'douban' or args.data_name == 'yahoo_music':
+        u_features, v_features, adj_train, train_labels, train_u_indices, train_v_indices, \
+            val_labels, val_u_indices, val_v_indices, test_labels, \
+            test_u_indices, test_v_indices, class_values = load_data_monti(args.data_name, args.testing, rating_map, post_rating_map)
+    elif args.data_name == 'ml_100k':
+        print("Using official MovieLens dataset split u1.base/u1.test with 20% validation set size...")
+        u_features, v_features, adj_train, train_labels, train_u_indices, train_v_indices, \
+            val_labels, val_u_indices, val_v_indices, test_labels, \
+            test_u_indices, test_v_indices, class_values = load_official_trainvaltest_split(args.data_name, args.testing, rating_map, post_rating_map, args.ratio)
+    else:
+        print("Using random dataset split ...")
+        u_features, v_features, adj_train, train_labels, train_u_indices, train_v_indices, \
+            val_labels, val_u_indices, val_v_indices, test_labels, \
+            test_u_indices, test_v_indices, class_values = create_trainvaltest_split(args.data_name, 1234, args.testing, datasplit_path, True, True, rating_map, post_rating_map, args.ratio)
 
     print('All ratings are:')
     print(class_values)

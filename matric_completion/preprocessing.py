@@ -8,7 +8,7 @@ import os
 import h5py
 import pandas as pd
 import pdb
-# from data_utils import load_data, map_data, download_dataset
+from data_utils import load_data, map_data, download_dataset
 
 
 def normalize_features(feat):
@@ -203,7 +203,7 @@ def create_trainvaltest_split(dataset, seed=1234, testing=False, datasplit_path=
         val_labels, u_val_idx, v_val_idx, test_labels, u_test_idx, v_test_idx, class_values
 
 
-def load_data_monti(dataset, data_seed, testing=False, rating_map=None, post_rating_map=None):
+def load_data_monti(dataset, testing=False, rating_map=None, post_rating_map=None):
     """
     Loads data from Monti et al. paper.
     if rating_map is given, apply this map to the original rating matrix
@@ -277,8 +277,7 @@ def load_data_monti(dataset, data_seed, testing=False, rating_map=None, post_rat
 
     # Internally shuffle training set (before splitting off validation set)
     rand_idx = list(range(len(idx_nonzero_train)))
-    # np.random.seed(42)
-    np.random.seed(data_seed)
+    np.random.seed(42)
     np.random.shuffle(rand_idx)
     idx_nonzero_train = idx_nonzero_train[rand_idx]
     pairs_nonzero_train = pairs_nonzero_train[rand_idx]
