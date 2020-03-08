@@ -62,7 +62,7 @@ def train(data, args, log_path):
 
         if scheduler is not None:
             scheduler.step(epoch)
-        if args.opt_decay_rate != 1.0:
+        if args.opt_scheduler != 'none':
             for param_group in opt.param_groups:
                 print('lr',param_group['lr'])
 
