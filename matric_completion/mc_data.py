@@ -30,9 +30,14 @@ def get_data(u_features, v_features, adj_train,
         x = torch.tensor(create_node(adj_train), dtype=torch.float)
     else:
         print("using given feature")
-        x = torch.cat((torch.tensor(u_features,dtype=torch.float),
-                        torch.tensor(v_features,dtype=torch.float)),
-                        dim=0)
+        # x = torch.cat((torch.tensor(u_features,dtype=torch.float),
+        #                 torch.tensor(v_features,dtype=torch.float)),
+        #                 dim=0)
+        x = torch.zeros((u_features.shape[0]+v_features.shape[0],
+                        np.maximum(u_features.shape[1],v_features.shape[1]))
+                        ,dtype=torch.float)
+        x[:u_features.shape[0],:u_features.shape[1]] = u_features
+        x[u_features.shape[0]:,:v_features.shape[1]] = v_features
 
     train_v_indices = train_v_indices + n_row
     train_edge_index = torch.tensor([np.append(train_u_indices,train_v_indices),
