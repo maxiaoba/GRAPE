@@ -62,8 +62,9 @@ def train(data, args, log_path):
 
         if scheduler is not None:
             scheduler.step(epoch)
-        # for param_group in opt.param_groups:
-        #     print('lr',param_group['lr'])
+        if args.opt_decay_rate != 1.0:
+            for param_group in opt.param_groups:
+                print('lr',param_group['lr'])
 
         model.train()
         impute_model.train()
