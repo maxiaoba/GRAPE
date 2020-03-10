@@ -34,7 +34,7 @@ from prediction_model import MLPNet
 from mc_plot_utils import plot_result
 
 from preprocessing import *
-from mc_data import get_data, split_edge
+from mc_data import load_data, split_edge
 
 def train(data, args, log_path):
     # build model
@@ -137,11 +137,22 @@ def main():
                         help='if set, use testing mode which splits all ratings into train/test;\
                         otherwise, use validation model which splits all ratings into \
                         train/val/test and evaluate on val only')
+    parser.add_argument('--debug', action='store_true', default=False,
+                        help='turn on debugging mode which uses a small number of data')
     parser.add_argument('--data-name', default='douban', help='dataset name')
     parser.add_argument('--seed', type=int, default=1, metavar='S',
                         help='random seed (default: 1)')
+    parser.add_argument('--data-seed', type=int, default=1234, metavar='S',
+                        help='seed to shuffle data (1234,2341,3412,4123,1324 are used), \
+                        valid only for ml_1m and ml_10m')
     parser.add_argument('--use-features', action='store_true', default=False,
                         help='whether to use node features (side information)')
+    parser.add_argument('--standard-rating', action='store_true', default=False,
+                        help='if True, maps all ratings to standard 1, 2, 3, 4, 5 before training')
+    # sparsity experiment settings
+    parser.add_argument('--ratio', type=float, default=1.0,
+                        help="For ml datasets, if ratio < 1, downsample training data to the\
+                        target ratio")
     parser.add_argument('--model_types', type=str, default='EGSAGE_EGSAGE_EGSAGE')
     parser.add_argument('--node_dim', type=int, default=64)
     parser.add_argument('--edge_dim', type=int, default=64)
@@ -170,40 +181,7 @@ def main():
     random.seed(args.seed)
     np.random.seed(args.seed)
 
-    rating_map, post_rating_map = None, None
-
-    u_features, v_features, adj_train, train_labels, train_u_indices, train_v_indices, \
-        val_labels, val_u_indices, val_v_indices, test_labels, \
-        test_u_indices, test_v_indices, class_values = load_data_monti(args.data_name, args.seed, args.testing, rating_map, post_rating_map)
-
-    print('All ratings are:')
-    print(class_values)
-    '''
-    Explanations of the above preprocessing:
-        class_values are all the original continuous ratings, e.g. 0.5, 2...
-        They are transformed to rating labels 0, 1, 2... acsendingly.
-        Thus, to get the original rating from a rating label, apply: class_values[label]
-        Note that train_labels etc. are all rating labels.
-        But the numbers in adj_train are rating labels + 1, why? Because to accomodate neutral ratings 0! Thus, to get any edge label from adj_train, remember to substract 1.
-        If testing=True, adj_train will include both train and val ratings, and all train data will be the combination of train and val.
-    '''
-
-    if args.use_features:
-        u_features, v_features = u_features.toarray(), v_features.toarray()
-        n_features = u_features.shape[1] + v_features.shape[1]
-        print('Number of user features {}, item features {}, total features {}'.format(u_features.shape[1], v_features.shape[1], n_features))
-    else:
-        u_features, v_features = None, None
-        n_features = 0
-
-    print('#train: %d, #val: %d, #test: %d' % (len(train_u_indices), len(val_u_indices), len(test_u_indices)))
-
-    '''
-        Transfer to torch geometric Data
-    '''
-    data = get_data(u_features, v_features, adj_train, train_labels, train_u_indices, train_v_indices, \
-        val_labels, val_u_indices, val_v_indices, test_labels, \
-        test_u_indices, test_v_indices, class_values)
+    data = load_data(args)
 
     '''
         Train and apply the GNN model

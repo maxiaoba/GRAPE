@@ -10,6 +10,8 @@ import torch
 import random
 import numpy as np
 
+from preprocessing import *
+
 def create_node(df):
     nrow, ncol = df.shape
     feature_ind = np.array(range(ncol))
@@ -87,4 +89,78 @@ def split_edge(edge_attr,edge_index,batch_size):
         edge_indexes.append(edge_index_i)
     return edge_attrs, edge_indexes
 
+def load_data(args):
+    rating_map, post_rating_map = None, None
+    if hasattr(args,"standrad_rating") and args.standard_rating:
+        if args.data_name in ['flixster', 'ml_10m']: # original 0.5, 1, ..., 5
+            rating_map = {x: int(math.ceil(x)) for x in np.arange(0.5, 5.01, 0.5).tolist()}
+        elif args.data_name == 'yahoo_music':  # original 1, 2, ..., 100
+            rating_map = {x: (x-1)//20+1 for x in range(1, 101)}
+        else:
+            rating_map = None
+
+    if args.data_name == 'ml_1m' or args.data_name == 'ml_10m':
+        if args.use_features:
+            datasplit_path = 'raw_data/' + args.data_name + '/withfeatures_split_seed' + str(args.data_seed) + '.pickle'
+        else:
+            datasplit_path = 'raw_data/' + args.data_name + '/split_seed' + str(args.data_seed) + '.pickle'
+    elif args.use_features:
+        datasplit_path = 'raw_data/' + args.data_name + '/withfeatures.pickle'
+    else:
+        datasplit_path = 'raw_data/' + args.data_name + '/nofeatures.pickle'
+
+    if args.data_name == 'flixster' or args.data_name == 'douban' or args.data_name == 'yahoo_music':
+        u_features, v_features, adj_train, train_labels, train_u_indices, train_v_indices, \
+            val_labels, val_u_indices, val_v_indices, test_labels, \
+            test_u_indices, test_v_indices, class_values = load_data_monti(args.data_name, args.testing, rating_map, post_rating_map)
+    elif args.data_name == 'ml_100k':
+        print("Using official MovieLens dataset split u1.base/u1.test with 20% validation set size...")
+        u_features, v_features, adj_train, train_labels, train_u_indices, train_v_indices, \
+            val_labels, val_u_indices, val_v_indices, test_labels, \
+            test_u_indices, test_v_indices, class_values = load_official_trainvaltest_split(args.data_name, args.testing, rating_map, post_rating_map, args.ratio)
+    else:
+        print("Using random dataset split ...")
+        u_features, v_features, adj_train, train_labels, train_u_indices, train_v_indices, \
+            val_labels, val_u_indices, val_v_indices, test_labels, \
+            test_u_indices, test_v_indices, class_values = create_trainvaltest_split(args.data_name, args.data_seed, args.testing, datasplit_path, True, True, rating_map, post_rating_map, args.ratio)
+
+    print('All ratings are:')
+    print(class_values)
+    '''
+    Explanations of the above preprocessing:
+        class_values are all the original continuous ratings, e.g. 0.5, 2...
+        They are transformed to rating labels 0, 1, 2... acsendingly.
+        Thus, to get the original rating from a rating label, apply: class_values[label]
+        Note that train_labels etc. are all rating labels.
+        But the numbers in adj_train are rating labels + 1, why? Because to accomodate neutral ratings 0! Thus, to get any edge label from adj_train, remember to substract 1.
+        If testing=True, adj_train will include both train and val ratings, and all train data will be the combination of train and val.
+    '''
+
+    if args.use_features:
+        u_features, v_features = u_features.toarray(), v_features.toarray()
+        n_features = u_features.shape[1] + v_features.shape[1]
+        print('Number of user features {}, item features {}, total features {}'.format(u_features.shape[1], v_features.shape[1], n_features))
+    else:
+        u_features, v_features = None, None
+        n_features = 0
+
+    if args.debug:  # use a small number of data to debug
+        num_data = 1000
+        train_u_indices, train_v_indices = train_u_indices[:num_data], train_v_indices[:num_data]
+        train_labels = train_labels[:num_data]
+        val_u_indices, val_v_indices = val_u_indices[:num_data], val_v_indices[:num_data]
+        val_labels = val_labels[:num_data]
+        test_u_indices, test_v_indices = test_u_indices[:num_data], test_v_indices[:num_data]
+        test_labels = test_labels[:num_data]
+
+    print('#train: %d, #val: %d, #test: %d' % (len(train_u_indices), len(val_u_indices), len(test_u_indices)))
+
+    '''
+        Transfer to torch geometric Data
+    '''
+    data = get_data(u_features, v_features, adj_train,
+        train_labels, train_u_indices, train_v_indices, \
+        val_labels, val_u_indices, val_v_indices, test_labels, \
+        test_u_indices, test_v_indices, class_values)
+    return data
 
