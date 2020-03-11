@@ -74,9 +74,9 @@ def construct_missing_X(train_mask, df):
                 data_incomplete[i,j] = np.NaN
     return data_complete, data_incomplete
 
-def get_impute_mae(X, X_filled, n_missing):
-    diff = X - X_filled
-    MAE = sum(sum(abs(diff))) / n_missing
+def get_impute_mae(X, X_filled, mask):
+    diff = X[~mask] - X_filled[~mask]
+    MAE = np.mean(np.abs(diff))
     return MAE
 
 # get gpu usage
