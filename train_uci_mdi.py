@@ -10,6 +10,8 @@ import pandas as pd
 import torch.nn.functional as F
 import joblib
 import pickle
+import pdb
+import shutil
 
 from torch_geometric.datasets import TUDataset
 from torch_geometric.datasets import Planetoid
@@ -17,21 +19,21 @@ from torch_geometric.data import DataLoader
 
 import torch_geometric.nn as pyg_nn
 
-from utils import build_optimizer, objectview, get_known_mask, mask_edge
+from utils import build_optimizer, objectview, get_known_mask, mask_edge, auto_select_gpu
 from uci import get_data
 
 from gnn_model import GNNStack
 from prediction_model import MLPNet
 from plot_utils import plot_result
 
-def train(data, args, log_path):
+def train(data, args, log_path, device):
     # build model
     model = GNNStack(data.num_node_features, args.node_dim,
                             args.edge_dim, args.edge_mode,
-                            args.model_types, args.dropout)
+                            args.model_types, args.dropout).to(device)
     impute_model = MLPNet([args.node_dim, args.node_dim], 1, 
                             hidden_layer_sizes=args.impute_hiddens,
-                            dropout=args.dropout)
+                            dropout=args.dropout).to(device)
 
     # build optimizer
     scheduler, opt = build_optimizer(args, model.parameters())
@@ -44,11 +46,11 @@ def train(data, args, log_path):
     best_test_l1 = np.inf
     best_epoch = None
 
-    x = data.x.clone().detach()
-    train_edge_index = data.train_edge_index.clone().detach()
-    train_edge_attr = data.train_edge_attr.clone().detach()
-    test_edge_index = data.test_edge_index.clone().detach()
-    test_edge_attr = data.test_edge_attr.clone().detach()
+    x = data.x.clone().detach().to(device)
+    train_edge_index = data.train_edge_index.clone().detach().to(device)
+    train_edge_attr = data.train_edge_attr.clone().detach().to(device)
+    test_edge_index = data.test_edge_index.clone().detach().to(device)
+    test_edge_attr = data.test_edge_attr.clone().detach().to(device)
     for epoch in range(args.epochs):
 
         if scheduler is not None:
@@ -63,6 +65,8 @@ def train(data, args, log_path):
         # now concat all masks by it self
         double_known_mask = torch.cat((known_mask, known_mask),dim=0)
         known_edge_index, known_edge_attr = mask_edge(train_edge_index,train_edge_attr,double_known_mask,True)
+        known_edge_index = known_edge_index.to(device)
+        known_edge_attr = known_edge_attr.to(device)
 
         opt.zero_grad()
         x_embd = model(x, known_edge_attr, known_edge_index)
@@ -90,15 +94,17 @@ def train(data, args, log_path):
         Train_loss.append(train_loss)
         Valid_mse.append(test_mse)
         Valid_l1.append(test_l1)
-        print('epoch: ',epoch)
-        print('loss: ',train_loss)
-        print('test mse: ',test_mse)
-        print('test l1: ',test_l1)
+        if epoch % 1000 == 0:
+            print('epoch: {}, train mse: {}, test mse: {}, test l1: {}, path: {}'.format(epoch, train_loss, test_mse, test_l1, log_path))
+        # print('epoch: ',epoch)
+        # print('loss: ',train_loss)
+        # print('test mse: ',test_mse)
+        # print('test l1: ',test_l1)
 
-    pred_train = pred_train.detach().numpy()
-    label_train = label_train.detach().numpy()
-    pred_test = pred_test.detach().numpy()
-    label_test = label_test.detach().numpy()
+    pred_train = pred_train.detach().cpu().numpy()
+    label_train = label_train.detach().cpu().numpy()
+    pred_test = pred_test.detach().cpu().numpy()
+    label_test = label_test.detach().cpu().numpy()
 
     obj = dict()
     obj['args'] = args
@@ -138,7 +144,7 @@ def main():
     parser.add_argument('--train_y', type=float, default=0.7)
     parser.add_argument('--known', type=float, default=0.7)
     parser.add_argument('--seed', type=int, default=0)
-    parser.add_argument('--log_dir', type=str, default='0')
+    parser.add_argument('--comment', type=str, default='v1')
     args = parser.parse_args()
     args.model_types = args.model_types.split('_')
     if args.impute_hiddens == '':
@@ -146,18 +152,42 @@ def main():
     else:
         args.impute_hiddens = list(map(int,args.impute_hiddens.split('_')))
 
-    seed = args.seed
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    
-    df_X = pd.read_csv('./Data/uci/'+ args.uci_data +"/"+ args.uci_data +'.csv')
-    df_y = pd.read_csv('./Data/uci/'+ args.uci_data +"/"+ args.uci_data +'_target.csv', header=None)
-    data = get_data(df_X, df_y, args.train_edge, args.train_y, args.seed)
+    # select device
+    if torch.cuda.is_available():
+        cuda = auto_select_gpu()
+        os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+        os.environ['CUDA_VISIBLE_DEVICES'] = str(cuda)
+        print('Using GPU {}'.format(os.environ['CUDA_VISIBLE_DEVICES']))
+        device = torch.device('cuda:{}'.format(cuda))
+    else:
+        print('Using CPU')
+        device = torch.device('cpu')
 
-    log_path = './Data/uci/'+args.uci_data+'/'+args.log_dir+'/'
-    os.mkdir(log_path)
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
 
-    train(data, args, log_path) 
+    ## new
+    for dataset in ['concrete', 'energy', 'housing', 'kin8nm',
+                    'naval', 'power', 'protein', 'wine', 'yacht']:
+        df_np = np.loadtxt('./Data/uci_all/{}/data/data.txt'.format(dataset))
+        df_y = pd.DataFrame(df_np[:, -1:])
+        df_X = pd.DataFrame(df_np[:, :-1])
+        data = get_data(df_X, df_y, args.train_edge, args.train_y, args.seed)
+
+        log_path = './Data/results/gnn_mdi_{}/{}/{}/'.format(args.comment, dataset, args.seed)
+
+        if not os.path.isdir(log_path):
+            os.makedirs(log_path)
+
+        # if os.path.isdir(log_path):
+        #     if len(os.listdir(log_path))>0:
+        #         print('Directory exists, skip training')
+        #         continue
+        #     else:
+        #         print('Directory exists, no content, re-initialize training')
+        #         shutil.rmtree(log_path)
+
+        train(data, args, log_path, device)
 
 if __name__ == '__main__':
     main()

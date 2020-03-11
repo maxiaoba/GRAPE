@@ -6,6 +6,7 @@ from utils import objectview
 import pandas as pd
 from uci import get_data
 import torch.nn.functional as F
+import pdb
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--uci_data', type=str, default='housing')
@@ -24,8 +25,15 @@ for key in args.__dict__.keys():
 from plot_utils import plot_result
 plot_result(result, load_path)
 
-df_X = pd.read_csv('./Data/uci/'+ args.uci_data +"/"+ args.uci_data +'.csv')
-df_y = pd.read_csv('./Data/uci/'+ args.uci_data +"/"+ args.uci_data +'_target.csv', header=None)
+## old
+# df_xold = pd.read_csv('./Data/uci/'+ args.uci_data +"/"+ args.uci_data +'.csv')
+# df_yold = pd.read_csv('./Data/uci/'+ args.uci_data +"/"+ args.uci_data +'_target.csv', header=None)
+## new
+df_X = pd.read_csv('./Data/uci_all/energy/data/data.txt', header=None, sep='\t')
+df_y = df_X.iloc[:, -1]
+df_X = df_X.iloc[:, :-1]
+pdb.set_trace()
+
 data = get_data(df_X, df_y, args.train_edge, args.train_y, args.seed)
 n_row, n_col = data.df_X.shape
 x = data.x.clone().detach()
