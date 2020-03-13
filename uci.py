@@ -9,6 +9,7 @@ from sklearn import preprocessing
 import torch
 import random
 import numpy as np
+import pdb
 
 from utils import get_known_mask, mask_edge
 
@@ -41,13 +42,23 @@ def create_node(df):
     node = sample_node + feature_node.tolist()
     return node
 
-def get_data(df_X, df_y, train_edge_prob, train_y_prob, seed=0):
+def get_data(df_X, df_y, train_edge_prob, train_y_prob, seed=0, normalize=True):
+    if len(df_y.shape)==1:
+        df_y = df_y.to_numpy()
+    elif len(df_y.shape)==2:
+        df_y = df_y[0].to_numpy()
+
+    if normalize:
+        x = df_X.values
+        min_max_scaler = preprocessing.MinMaxScaler()
+        x_scaled = min_max_scaler.fit_transform(x)
+        df_X = pd.DataFrame(x_scaled)
     edge_start, edge_end = create_edge(df_X)
     edge_index = torch.tensor([edge_start, edge_end], dtype=int)
     edge_attr = torch.tensor(create_edge_attr(df_X), dtype=torch.float)
     node_init = create_node(df_X) 
     x = torch.tensor(node_init, dtype=torch.float)
-    y = torch.tensor(df_y[0].to_numpy(), dtype=torch.float)
+    y = torch.tensor(df_y, dtype=torch.float)
     
     #set seed to fix known/unknwon edges
     torch.manual_seed(seed)

@@ -2,6 +2,7 @@ import torch.optim as optim
 import numpy as np
 import os.path as osp
 import torch
+import subprocess
 
 def np_random(seed=None):
     rng = np.random.RandomState()
@@ -73,7 +74,41 @@ def construct_missing_X(train_mask, df):
                 data_incomplete[i,j] = np.NaN
     return data_complete, data_incomplete
 
-def get_impute_mae(X, X_filled, n_missing):
-    diff = X - X_filled
-    MAE = sum(sum(abs(diff))) / n_missing
+def get_impute_mae(X, X_filled, mask):
+    diff = X[~mask] - X_filled[~mask]
+    MAE = np.mean(np.abs(diff))
     return MAE
+
+# get gpu usage
+def get_gpu_memory_map():
+    """Get the current gpu usage.
+
+    Returns
+    -------
+    usage: dict
+        Keys are device ids as integers.
+        Values are memory usage as integers in MB.
+    """
+    result = subprocess.check_output(
+        [
+            'nvidia-smi', '--query-gpu=memory.used',
+            '--format=csv,nounits,noheader'
+        ], encoding='utf-8')
+    # Convert lines into a dictionary
+    gpu_memory = np.array([int(x) for x in result.strip().split('\n')])
+    # gpu_memory_map = dict(zip(range(len(gpu_memory)), gpu_memory))
+    return gpu_memory
+
+def auto_select_gpu(memory_threshold = 7000, smooth_ratio=200, strategy='greedy'):
+    gpu_memory_raw = get_gpu_memory_map() + 10
+    if strategy=='random':
+        gpu_memory = gpu_memory_raw/smooth_ratio
+        gpu_memory = gpu_memory.sum() / (gpu_memory+10)
+        gpu_memory[gpu_memory_raw>memory_threshold] = 0
+        gpu_prob = gpu_memory / gpu_memory.sum()
+        cuda = str(np.random.choice(len(gpu_prob), p=gpu_prob))
+        print('GPU select prob: {}, Select GPU {}'.format(gpu_prob, cuda))
+    elif strategy == 'greedy':
+        cuda = np.argmin(gpu_memory_raw)
+        print('GPU mem: {}, Select GPU {}'.format(gpu_memory_raw[cuda], cuda))
+    return cuda
