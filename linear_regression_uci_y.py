@@ -102,14 +102,14 @@ def main():
     ## new
     for dataset in ['concrete', 'energy', 'housing', 'kin8nm',
                     'naval', 'power', 'protein', 'wine', 'yacht']:
-        for method in ['gnn_mdi']:
-        # for method in ['mean', 'knn', 'svd', 'mice']:
+        # for method in ['gnn_mdi']:
+        for args.method in ['gnn_mdi', 'mean', 'knn', 'svd', 'mice']:
             df_np = np.loadtxt('./Data/uci_all/{}/data/data.txt'.format(dataset))
             df_y = pd.DataFrame(df_np[:, -1:])
             df_X = pd.DataFrame(df_np[:, :-1])
             data = get_data(df_X, df_y, args.train_edge, args.train_y, args.seed)
 
-            log_path = './Data/results/{}_{}/{}/{}/'.format(method, args.comment, dataset, args.seed)
+            log_path = './Data/results/{}_{}/{}/{}/'.format(args.method, args.comment, dataset, args.seed)
             if not os.path.isdir(log_path):
                 os.makedirs(log_path)
             train(data, args, log_path)
