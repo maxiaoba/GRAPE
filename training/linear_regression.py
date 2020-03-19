@@ -3,8 +3,6 @@ import numpy as np
 import torch
 import pickle
 
-import sys
-sys.path.append("..")
 from training.baseline import baseline_inpute
 from utils.utils import construct_missing_X
 
@@ -24,9 +22,9 @@ def linear_regression(data, args, log_path, load_path):
     y_test = y[test_y_mask]
 
     if args.method == 'gnn_mdi':
-        model = torch.load(load_path+'model')
+        model = torch.load(load_path+'model.pt')
         model.eval()
-        impute_model = torch.load(load_path+'impute_model')
+        impute_model = torch.load(load_path+'impute_model.pt')
         impute_model.eval()
 
         x_embd = model(x, train_edge_attr, train_edge_index)

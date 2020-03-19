@@ -3,8 +3,6 @@ import torch
 import torch.nn.functional as F
 import pickle
 
-import sys
-sys.path.append("..")
 from models.gnn_model import GNNStack
 from models.prediction_model import MLPNet
 from utils.plot_utils import plot_curve, plot_sample
@@ -98,8 +96,8 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
             if valid_l1 < best_valid_l1:
                 best_valid_l1 = valid_l1
                 best_epoch = epoch
-                torch.save(model, log_path + 'model_best')
-                torch.save(impute_model, log_path + 'impute_model_best')
+                torch.save(model, log_path + 'model.pt')
+                torch.save(impute_model, log_path + 'impute_model.pt')
             Valid_mse.append(valid_mse)
             Valid_l1.append(valid_l1)
 
@@ -145,8 +143,9 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
     obj['outputs']['label_test'] = label_test
     pickle.dump(obj, open(log_path + 'result.pkl', "wb"))
 
-    torch.save(model, log_path + 'model')
-    torch.save(impute_model, log_path + 'impute_model')
+    if args.valid == 0.:
+        torch.save(model, log_path + 'model.pt')
+        torch.save(impute_model, log_path + 'impute_model.pt')
 
     # obj = objectview(obj)
     plot_curve(obj['curves'], log_path+'curves.png',keys=None, 

@@ -11,8 +11,6 @@ import pdb
 
 import inspect
 import os.path as osp
-import sys
-sys.path.append("..")
 from mc.data_utils import load_data, map_data, download_dataset
 
 

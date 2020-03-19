@@ -9,8 +9,6 @@ import random
 import numpy as np
 import pdb
 
-import sys
-sys.path.append("..")
 from utils.utils import get_known_mask, mask_edge
 
 def create_edge(df):

@@ -10,7 +10,7 @@ import torch.nn.functional as F
 parser = argparse.ArgumentParser()
 parser.add_argument('--domain', type=str, default='uci')
 parser.add_argument('--data', type=str, default='housing')
-parser.add_argument('--log_dir', type=str, default='0')
+parser.add_argument('--log_dir', type=str, default='y0')
 load_args = parser.parse_args()
 
 load_path = './{}/test/{}/{}/'.format(load_args.domain,load_args.data,load_args.log_dir)
@@ -26,11 +26,11 @@ if args.domain == 'uci':
     from uci.uci_data import load_data
     data = load_data(args)
 
-model = torch.load(load_path+'model')
+model = torch.load(load_path+'model.pt')
 model.eval()
-impute_model = torch.load(load_path+'impute_model')
+impute_model = torch.load(load_path+'impute_model.pt')
 impute_model.eval()
-predict_model = torch.load(load_path+'predict_model')
+predict_model = torch.load(load_path+'predict_model.pt')
 predict_model.eval()
 
 n_row, n_col = data.df_X.shape

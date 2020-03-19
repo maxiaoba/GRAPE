@@ -4,8 +4,6 @@ import pandas as pd
 from sklearn import preprocessing
 import pickle
 
-import sys
-sys.path.append("..")
 from utils.utils import construct_missing_X
 
 def baseline_mdi(data, args, log_path):

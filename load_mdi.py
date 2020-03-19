@@ -29,9 +29,9 @@ elif args.domain == 'mc':
     from mc.mc_data import load_data
     data = load_data(args)
 
-model = torch.load(load_path+'model')
+model = torch.load(load_path+'model.pt')
 model.eval()
-impute_model = torch.load(load_path+'impute_model')
+impute_model = torch.load(load_path+'impute_model.pt')
 impute_model.eval()
 
 x = data.x.clone().detach()

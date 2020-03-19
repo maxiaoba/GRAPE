@@ -8,8 +8,6 @@ import torch
 import random
 import numpy as np
 
-import sys
-sys.path.append("..")
 from utils.utils import get_known_mask, mask_edge
 from mc.preprocessing import *
 

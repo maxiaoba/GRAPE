@@ -16,6 +16,6 @@ dependencies:
     # pip install --no-cache-dir torch-scatter
     # pip install --no-cache-dir torch-sparse
     # pip install --no-cache-dir torch-cluster
-    # pip install torch-geometric
+    # pip install torch-geometric==1.4.2
     # pip install networkx
 
