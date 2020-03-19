@@ -25,6 +25,9 @@ for key in args.__dict__.keys():
 if args.domain == 'uci':
     from uci.uci_data import load_data
     data = load_data(args)
+elif args.domain == 'mc':
+    from mc.mc_data import load_data
+    data = load_data(args)
 
 model = torch.load(load_path+'model')
 model.eval()

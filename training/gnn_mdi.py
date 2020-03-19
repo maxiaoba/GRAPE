@@ -34,6 +34,7 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
     Train_loss = []
     Test_mse = []
     Test_l1 = []
+    Lr = []
 
     x = data.x.clone().detach().to(device)
     all_train_edge_index = data.train_edge_index.clone().detach().to(device)
@@ -62,8 +63,8 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
     for epoch in range(args.epochs):
         if scheduler is not None:
             scheduler.step(epoch)
-        # for param_group in opt.param_groups:
-        #     print('lr',param_group['lr'])
+        for param_group in opt.param_groups:
+            Lr.append(param_group['lr'])
 
         model.train()
         impute_model.train()
@@ -136,6 +137,7 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
         obj['curves']['valid_l1'] = Valid_l1
     obj['curves']['test_mse'] = Test_mse
     obj['curves']['test_l1'] = Test_l1
+    obj['lr'] = Lr
     obj['outputs'] = dict()
     obj['outputs']['pred_train'] = pred_train
     obj['outputs']['label_train'] = label_train
@@ -146,10 +148,12 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
     torch.save(model, log_path + 'model')
     torch.save(impute_model, log_path + 'impute_model')
 
-    obj = objectview(obj)
-    plot_curve(obj.curves, log_path+'curves.png',keys=None, 
+    # obj = objectview(obj)
+    plot_curve(obj['curves'], log_path+'curves.png',keys=None, 
                 clip=True, label_min=True, label_end=True)
-    plot_sample(obj.outputs, log_path+'outputs.png', 
+    plot_curve(obj, log_path+'lr.png',keys=['lr'], 
+                clip=False, label_min=False, label_end=False)
+    plot_sample(obj['outputs'], log_path+'outputs.png', 
                 groups=[['pred_train','label_train'],
                         ['pred_test','label_test']
                         ], 
