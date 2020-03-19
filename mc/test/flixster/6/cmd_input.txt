@@ -1,0 +1,1 @@
+python train_mdi.py --log_dir 6 --valid 0.2 mc --testing --data flixster
