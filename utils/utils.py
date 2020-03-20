@@ -33,7 +33,7 @@ def build_optimizer(args, params):
     elif args.opt_scheduler == 'step':
         scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.opt_decay_step, gamma=args.opt_decay_rate)
     elif args.opt_scheduler == 'cos':
-        scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.opt_restart)
+        scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
     return scheduler, optimizer
 
 class objectview(object):

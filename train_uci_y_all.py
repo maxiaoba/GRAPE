@@ -10,6 +10,7 @@ import pandas as pd
 
 from training.gnn_y import train_gnn_y
 from uci.uci_data import load_data
+from utils.utils import auto_select_gpu
 
 def main():
     parser = argparse.ArgumentParser()

@@ -144,10 +144,10 @@ def train_gnn_y(data, args, log_path, device=torch.device('cpu')):
         print('test mse: ', test_mse)
         print('test l1: ', test_l1)
 
-    pred_train = pred_train.detach().numpy()
-    label_train = label_train.detach().numpy()
-    pred_test = pred_test.detach().numpy()
-    label_test = label_test.detach().numpy()
+    pred_train = pred_train.detach().cpu().numpy()
+    label_train = label_train.detach().cpu().numpy()
+    pred_test = pred_test.detach().cpu().numpy()
+    label_test = label_test.detach().cpu().numpy()
 
     obj = dict()
     obj['args'] = args
