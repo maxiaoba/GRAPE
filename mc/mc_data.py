@@ -7,6 +7,7 @@ from sklearn import preprocessing
 import torch
 import random
 import numpy as np
+import math
 
 from utils.utils import get_known_mask, mask_edge
 from mc.preprocessing import *
@@ -25,6 +26,9 @@ def get_data(u_features, v_features, adj_train,
     val_labels, val_u_indices, val_v_indices, 
     test_labels, test_u_indices, test_v_indices, 
     class_values):
+    train_labels = torch.FloatTensor(class_values[train_labels])
+    val_labels = torch.FloatTensor(class_values[val_labels])
+    test_labels = torch.FloatTensor(class_values[test_labels])
 
     n_row, n_col = adj_train.shape
     if (u_features is None) or (v_features is None):
@@ -91,7 +95,7 @@ def split_edge(edge_attr,edge_index,batch_size):
 def load_data(args):
     mc_path = osp.dirname(osp.abspath(inspect.getfile(inspect.currentframe())))
     rating_map, post_rating_map = None, None
-    if hasattr(args,"standrad_rating") and args.standard_rating:
+    if args.standard_rating:
         if args.data in ['flixster', 'ml_10m']: # original 0.5, 1, ..., 5
             rating_map = {x: int(math.ceil(x)) for x in np.arange(0.5, 5.01, 0.5).tolist()}
         elif args.data == 'yahoo_music':  # original 1, 2, ..., 100
