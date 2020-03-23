@@ -55,8 +55,9 @@ def main():
     torch.manual_seed(args.seed)
 
     ## new
-    for args.data in ['concrete', 'energy', 'housing', 'kin8nm',
-                    'naval', 'power', 'protein', 'wine', 'yacht']:
+    # for args.data in ['concrete', 'energy', 'housing', 'kin8nm',
+    #                 'naval', 'power', 'protein', 'wine', 'yacht']:
+    for args.data in ['naval', 'power', 'protein', 'wine', 'yacht']:
         data = load_data(args)
 
         log_path = './uci/mdi_results/gnn_mdi_{}/{}/{}/'.format(args.comment, args.data, args.seed)

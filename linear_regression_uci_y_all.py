@@ -29,7 +29,8 @@ def main():
     ## new
     for args.data in ['concrete', 'energy', 'housing', 'kin8nm',
                     'naval', 'power', 'protein', 'wine', 'yacht']:
-        for args.method in ['gnn_mdi', 'mean', 'knn', 'svd', 'mice']:
+        # for args.method in ['gnn_mdi', 'mean', 'knn', 'svd', 'mice']:
+        for args.method in ['mean', 'knn', 'svd', 'mice']:
             data = load_data(args)
 
             log_path = './uci/y_results/{}_{}/{}/{}/'.format(args.method, args.comment, args.data, args.seed)
