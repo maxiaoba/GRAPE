@@ -1,0 +1,1 @@
+python train_mdi.py --epochs 2000 mc --testing --data ml_100k
