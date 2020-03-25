@@ -120,11 +120,13 @@ def train_gnn_y(data, args, log_path, device=torch.device('cpu')):
                 best_valid_l1_epoch = epoch
                 torch.save(model, log_path + 'model_best_valid_l1.pt')
                 torch.save(impute_model, log_path + 'impute_model_best_valid_l1.pt')
+                torch.save(predict_model, log_path + 'predict_model_best_valid_l1.pt')
             if valid_rmse < best_valid_rmse:
                 best_valid_rmse = valid_rmse
                 best_valid_rmse_epoch = epoch
                 torch.save(model, log_path + 'model_best_valid_rmse.pt')
                 torch.save(impute_model, log_path + 'impute_model_best_valid_rmse.pt')
+                torch.save(predict_model, log_path + 'predict_model_best_valid_rmse.pt')
             Valid_rmse.append(valid_rmse)
             Valid_l1.append(valid_l1)
 
@@ -172,10 +174,9 @@ def train_gnn_y(data, args, log_path, device=torch.device('cpu')):
     obj['outputs']['label_test'] = label_test
     pickle.dump(obj, open(log_path + 'result.pkl', "wb"))
 
-    if args.valid == 0.:
-        torch.save(model, log_path + 'model.pt')
-        torch.save(impute_model, log_path + 'impute_model.pt')
-        torch.save(predict_model, log_path + 'predict_model.pt')
+    torch.save(model, log_path + 'model.pt')
+    torch.save(impute_model, log_path + 'impute_model.pt')
+    torch.save(predict_model, log_path + 'predict_model.pt')
 
     # obj = objectview(obj)
     plot_curve(obj['curves'], log_path+'curves.png',keys=None, 

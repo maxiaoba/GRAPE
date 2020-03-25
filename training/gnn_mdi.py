@@ -150,9 +150,8 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
     obj['outputs']['label_test'] = label_test
     pickle.dump(obj, open(log_path + 'result.pkl', "wb"))
 
-    if args.valid == 0.:
-        torch.save(model, log_path + 'model.pt')
-        torch.save(impute_model, log_path + 'impute_model.pt')
+    torch.save(model, log_path + 'model.pt')
+    torch.save(impute_model, log_path + 'impute_model.pt')
 
     # obj = objectview(obj)
     plot_curve(obj['curves'], log_path+'curves.png',keys=None, 
