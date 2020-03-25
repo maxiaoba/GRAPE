@@ -1,1 +1,0 @@
-python train_mdi.py --epochs 2000 --log_dir 2 --valid 0.2 mc --testing --data douban
