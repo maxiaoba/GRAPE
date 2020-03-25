@@ -11,6 +11,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--domain', type=str, default='uci')
 parser.add_argument('--data', type=str, default='housing')
 parser.add_argument('--log_dir', type=str, default='0')
+parser.add_argument('--log_extra', type=str, default='')
 load_args = parser.parse_args()
 
 load_path = './{}/test/{}/{}/'.format(load_args.domain,load_args.data,load_args.log_dir)
@@ -29,9 +30,9 @@ elif args.domain == 'mc':
     from mc.mc_data import load_data
     data = load_data(args)
 
-model = torch.load(load_path+'model.pt')
+model = torch.load(load_path+'model'+load_args.log_extra+'.pt')
 model.eval()
-impute_model = torch.load(load_path+'impute_model.pt')
+impute_model = torch.load(load_path+'impute_model'+load_args.log_extra+'.pt')
 impute_model.eval()
 
 x = data.x.clone().detach()
@@ -79,5 +80,5 @@ plt.subplot(1,3,3)
 for i in Os.keys():
     plt.plot(Os[str(i)]['x_j'],label='o'+str(i)+'xj')
 plt.legend()
-plt.savefig(load_path+'check_embedding.png')
+plt.savefig(load_path+'check_embedding'+load_args.log_extra+'.png')
 

@@ -11,6 +11,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--domain', type=str, default='uci')
 parser.add_argument('--data', type=str, default='housing')
 parser.add_argument('--log_dir', type=str, default='y0')
+parser.add_argument('--log_extra', type=str, default='')
 load_args = parser.parse_args()
 
 load_path = './{}/test/{}/{}/'.format(load_args.domain,load_args.data,load_args.log_dir)
@@ -26,11 +27,11 @@ if args.domain == 'uci':
     from uci.uci_data import load_data
     data = load_data(args)
 
-model = torch.load(load_path+'model.pt')
+model = torch.load(load_path+'model'+load_args.log_extra+'.pt')
 model.eval()
-impute_model = torch.load(load_path+'impute_model.pt')
+impute_model = torch.load(load_path+'impute_model'+load_args.log_extra+'.pt')
 impute_model.eval()
-predict_model = torch.load(load_path+'predict_model.pt')
+predict_model = torch.load(load_path+'predict_model'+load_args.log_extra+'.pt')
 predict_model.eval()
 
 n_row, n_col = data.df_X.shape
@@ -65,5 +66,5 @@ plt.subplot(2,1,2)
 for i in range(20):
     plt.plot(x_embd.detach().numpy()[i,:],label=str(i))
 plt.legend()
-plt.savefig(load_path+'check_embedding.png')
+plt.savefig(load_path+'check_embedding'+load_args.log_extra+'.png')
 
