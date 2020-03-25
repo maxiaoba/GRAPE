@@ -46,10 +46,10 @@ pred_test = pred[:int(test_edge_attr.shape[0]/2)]
 label_test = test_edge_attr[:int(test_edge_attr.shape[0]/2)]
 
 mse = F.mse_loss(pred_test, label_test)
-test_mse = mse.item()
+test_rmse = np.sqrt(mse.item())
 l1 = F.l1_loss(pred_test, label_test)
 test_l1 = l1.item()
-print("test mse: ",test_mse, " l1: ",test_l1)
+print("test rmse: ",test_rmse, " l1: ",test_l1)
 
 Os = {}
 for indx in range(20):
