@@ -30,7 +30,7 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
 
     # train
     Train_loss = []
-    Test_mse = []
+    Test_rmse = []
     Test_l1 = []
     Lr = []
 
@@ -48,10 +48,12 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
                 .format(
                 train_edge_attr.shape[0],valid_edge_attr.shape[0],
                 test_edge_attr.shape[0]))
-        Valid_mse = []
+        Valid_rmse = []
         Valid_l1 = []
+        best_valid_rmse = np.inf
+        best_valid_rmse_epoch = 0
         best_valid_l1 = np.inf
-        best_epoch = 0
+        best_valid_l1_epoch = 0
     else:
         train_edge_index, train_edge_attr = all_train_edge_index, all_train_edge_attr
         print("train edge num is {}, test edge num is {}"\
@@ -90,15 +92,20 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
             pred_valid = pred[:int(valid_edge_attr.shape[0] / 2)]
             label_valid = valid_edge_attr[:int(valid_edge_attr.shape[0] / 2)]
             mse = F.mse_loss(pred_valid, label_valid)
-            valid_mse = mse.item()
+            valid_rmse = np.sqrt(mse.item())
             l1 = F.l1_loss(pred_valid, label_valid)
             valid_l1 = l1.item()
             if valid_l1 < best_valid_l1:
                 best_valid_l1 = valid_l1
-                best_epoch = epoch
-                torch.save(model, log_path + 'model.pt')
-                torch.save(impute_model, log_path + 'impute_model.pt')
-            Valid_mse.append(valid_mse)
+                best_valid_l1_epoch = epoch
+                torch.save(model, log_path + 'model_best_valid_l1.pt')
+                torch.save(impute_model, log_path + 'impute_model_best_valid_l1.pt')
+            if valid_rmse < best_valid_rmse:
+                best_valid_rmse = valid_rmse
+                best_valid_rmse_epoch = epoch
+                torch.save(model, log_path + 'model_best_valid_rmse.pt')
+                torch.save(impute_model, log_path + 'impute_model_best_valid_rmse.pt')
+            Valid_rmse.append(valid_rmse)
             Valid_l1.append(valid_l1)
 
         x_embd = model(x, all_train_edge_attr, all_train_edge_index)
@@ -106,19 +113,19 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
         pred_test = pred[:int(test_edge_attr.shape[0] / 2)]
         label_test = test_edge_attr[:int(test_edge_attr.shape[0] / 2)]
         mse = F.mse_loss(pred_test, label_test)
-        test_mse = mse.item()
+        test_rmse = np.sqrt(mse.item())
         l1 = F.l1_loss(pred_test, label_test)
         test_l1 = l1.item()
 
         Train_loss.append(train_loss)
-        Test_mse.append(test_mse)
+        Test_rmse.append(test_rmse)
         Test_l1.append(test_l1)
         print('epoch: ', epoch)
         print('loss: ', train_loss)
         if args.valid > 0.:
-            print('valid mse: ', valid_mse)
+            print('valid rmse: ', valid_rmse)
             print('valid l1: ', valid_l1)
-        print('test mse: ', test_mse)
+        print('test rmse: ', test_rmse)
         print('test l1: ', test_l1)
 
     pred_train = pred_train.detach().cpu().numpy()
@@ -131,9 +138,9 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
     obj['curves'] = dict()
     obj['curves']['train_loss'] = Train_loss
     if args.valid > 0.:
-        obj['curves']['valid_mse'] = Valid_mse
+        obj['curves']['valid_rmse'] = Valid_rmse
         obj['curves']['valid_l1'] = Valid_l1
-    obj['curves']['test_mse'] = Test_mse
+    obj['curves']['test_rmse'] = Test_rmse
     obj['curves']['test_l1'] = Test_l1
     obj['lr'] = Lr
     obj['outputs'] = dict()
@@ -158,4 +165,5 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
                         ], 
                 num_points=20)
     if args.valid > 0.:
-        print("best valid l1 is {:.3g} at epoch {}".format(best_valid_l1,best_epoch))
+        print("best valid rmse is {:.3g} at epoch {}".format(best_valid_rmse,best_valid_rmse_epoch))
+        print("best valid l1 is {:.3g} at epoch {}".format(best_valid_l1,best_valid_l1_epoch))
