@@ -1,1 +1,0 @@
-python train_mdi.py --log_dir 8 --opt_scheduler cos --opt_restart 20000 mc --testing --data flixster

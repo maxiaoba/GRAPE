@@ -1,1 +1,0 @@
-python train_mdi.py --log_dir 2 --opt_scheduler step --opt_decay_step 500 --opt_decay_rate 0.9 mc --testing --data flixster

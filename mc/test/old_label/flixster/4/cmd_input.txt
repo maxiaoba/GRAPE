@@ -1,1 +1,0 @@
-python train_mdi.py --log_dir 4 mc --testing --data flixster
