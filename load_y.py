@@ -50,10 +50,10 @@ pred_test = pred[test_y_mask]
 label_test = y[test_y_mask]
 
 mse = F.mse_loss(pred_test, label_test)
-test_mse = mse.item()
+test_rmse = np.sqrt(mse.item())
 l1 = F.l1_loss(pred_test, label_test)
 test_l1 = l1.item()
-print("test mse: ",test_mse, " l1: ",test_l1)
+print("test rmse: ",test_rmse, " l1: ",test_l1)
 
 import matplotlib.pyplot as plt
 plt.figure()
