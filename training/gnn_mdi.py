@@ -14,12 +14,15 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
         impute_hiddens = []
     else:
         impute_hiddens = list(map(int,args.impute_hiddens.split('_')))
-
+    if hasattr(args,'ce_loss') and args.ce_loss:
+        output_dim = len(data.class_values)
+    else:
+        output_dim = 1
     # build model
     model = GNNStack(data.num_node_features, data.edge_attr_dim,
                         args.node_dim, args.edge_dim, args.edge_mode,
                         model_types, args.dropout).to(device)
-    impute_model = MLPNet([args.node_dim, args.node_dim], 1,
+    impute_model = MLPNet([args.node_dim, args.node_dim], output_dim,
                             hidden_layer_sizes=impute_hiddens,
                             dropout=args.dropout).to(device)
     trainable_parameters = list(model.parameters()) \
@@ -41,6 +44,8 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
     test_edge_index = data.test_edge_index.clone().detach().to(device)
     test_edge_attr = data.test_edge_attr.clone().detach().to(device)
     test_labels = data.test_labels.clone().detach().to(device)
+    if hasattr(data,'class_values'):
+        class_values = data.class_values.clone().detach().to(device)
     if args.valid > 0.:
         valid_mask = get_known_mask(args.valid, int(all_train_edge_attr.shape[0] / 2)).to(device)
         train_labels = all_train_labels[~valid_mask]
@@ -81,10 +86,16 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
         opt.zero_grad()
         x_embd = model(x, known_edge_attr, known_edge_index)
         pred = impute_model([x_embd[train_edge_index[0]], x_embd[train_edge_index[1]]])
-        pred_train = pred[:int(train_edge_attr.shape[0] / 2),0]
+        if hasattr(args,'ce_loss') and args.ce_loss:
+            pred_train = pred[:int(train_edge_attr.shape[0] / 2)]
+        else:
+            pred_train = pred[:int(train_edge_attr.shape[0] / 2),0]
         label_train = train_labels
 
-        loss = F.mse_loss(pred_train, label_train)
+        if hasattr(args,'ce_loss') and args.ce_loss:
+            loss = F.cross_entropy(pred_train,train_labels)
+        else:
+            loss = F.mse_loss(pred_train, label_train)
         loss.backward()
         opt.step()
         train_loss = loss.item()
@@ -94,8 +105,12 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
         if args.valid > 0.:
             x_embd = model(x, train_edge_attr, train_edge_index)
             pred = impute_model([x_embd[valid_edge_index[0], :], x_embd[valid_edge_index[1], :]])
-            pred_valid = pred[:int(valid_edge_attr.shape[0] / 2),0]
-            label_valid = valid_labels
+            if hasattr(args,'ce_loss') and args.ce_loss:
+                pred_valid = class_values[pred[:int(valid_edge_attr.shape[0] / 2)].max(1)[1]]
+                label_valid = class_values[valid_labels]
+            else:
+                pred_valid = pred[:int(valid_edge_attr.shape[0] / 2),0]
+                label_valid = valid_labels
             mse = F.mse_loss(pred_valid, label_valid)
             valid_rmse = np.sqrt(mse.item())
             l1 = F.l1_loss(pred_valid, label_valid)
@@ -115,8 +130,12 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
 
         x_embd = model(x, all_train_edge_attr, all_train_edge_index)
         pred = impute_model([x_embd[test_edge_index[0], :], x_embd[test_edge_index[1], :]])
-        pred_test = pred[:int(test_edge_attr.shape[0] / 2),0]
-        label_test = test_labels
+        if hasattr(args,'ce_loss') and args.ce_loss:
+            pred_test = class_values[pred[:int(test_edge_attr.shape[0] / 2)].max(1)[1]]
+            label_test = class_values[test_labels]
+        else:
+            pred_test = pred[:int(test_edge_attr.shape[0] / 2),0]
+            label_test = test_labels
         mse = F.mse_loss(pred_test, label_test)
         test_rmse = np.sqrt(mse.item())
         l1 = F.l1_loss(pred_test, label_test)

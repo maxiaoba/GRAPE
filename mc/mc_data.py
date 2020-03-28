@@ -25,14 +25,19 @@ def get_data(u_features, v_features, adj_train,
     train_labels, train_u_indices, train_v_indices,
     val_labels, val_u_indices, val_v_indices, 
     test_labels, test_u_indices, test_v_indices, 
-    class_values, one_hot_edge):
+    class_values, one_hot_edge, ce_loss):
     train_indices = train_labels
     val_indices =val_labels
     test_indices = test_labels
     # indices are the index in class_values
-    train_labels = torch.FloatTensor(class_values[train_labels])
-    val_labels = torch.FloatTensor(class_values[val_labels])
-    test_labels = torch.FloatTensor(class_values[test_labels])
+    if ce_loss:
+        train_labels = torch.tensor(train_labels,dtype=int)
+        val_labels = torch.tensor(val_labels,dtype=int)
+        test_labels = torch.tensor(test_labels,dtype=int)
+    else:
+        train_labels = torch.FloatTensor(class_values[train_labels])
+        val_labels = torch.FloatTensor(class_values[val_labels])
+        test_labels = torch.FloatTensor(class_values[test_labels])
 
     n_row, n_col = adj_train.shape
     if (u_features is None) or (v_features is None):
@@ -85,7 +90,7 @@ def get_data(u_features, v_features, adj_train,
             train_edge_index=train_edge_index,train_edge_attr=train_edge_attr,train_labels=train_labels,
             val_edge_index=val_edge_index,val_edge_attr=val_edge_attr,val_labels=val_labels,
             test_edge_index=test_edge_index,test_edge_attr=test_edge_attr,test_labels=test_labels,
-            edge_attr_dim=train_edge_attr.shape[-1]
+            edge_attr_dim=train_edge_attr.shape[-1], class_values=torch.FloatTensor(class_values),
             )
     return data
 
@@ -182,6 +187,7 @@ def load_data(args):
     data = get_data(u_features, v_features, adj_train,
         train_labels, train_u_indices, train_v_indices, \
         val_labels, val_u_indices, val_v_indices, test_labels, \
-        test_u_indices, test_v_indices, class_values, args.one_hot_edge)
+        test_u_indices, test_v_indices, class_values,
+        args.one_hot_edge, args.ce_loss)
     return data
 

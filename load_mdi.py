@@ -20,6 +20,8 @@ import joblib
 result = joblib.load(load_path+'result.pkl')
 result = objectview(result)
 args = result.args
+if not hasattr(args,'one_hot_edge'):
+    args.one_hot_edge = False
 for key in args.__dict__.keys():
     print(key,': ',args.__dict__[key])
 
@@ -38,13 +40,15 @@ impute_model.eval()
 x = data.x.clone().detach()
 train_edge_index = data.train_edge_index.clone().detach()
 train_edge_attr = data.train_edge_attr.clone().detach()
+train_labels = data.train_labels.clone().detach()
 test_edge_index = data.test_edge_index.clone().detach()
 test_edge_attr = data.test_edge_attr.clone().detach()
+test_labels = data.test_labels.clone().detach()
 
 x_embd = model(x, train_edge_attr, train_edge_index)
 pred = impute_model([x_embd[test_edge_index[0],:],x_embd[test_edge_index[1],:]])
-pred_test = pred[:int(test_edge_attr.shape[0]/2)]
-label_test = test_edge_attr[:int(test_edge_attr.shape[0]/2)]
+pred_test = pred[:int(test_edge_attr.shape[0]/2),0]
+label_test = test_labels
 
 mse = F.mse_loss(pred_test, label_test)
 test_rmse = np.sqrt(mse.item())
