@@ -21,9 +21,9 @@ def train_gnn_y(data, args, log_path, device=torch.device('cpu')):
 
     n_row, n_col = data.df_X.shape
     # build model
-    model = GNNStack(data.num_node_features, args.node_dim,
-                     args.edge_dim, args.edge_mode,
-                     model_types, args.dropout).to(device)
+    model = GNNStack(data.num_node_features, data.edge_attr_dim,
+                        args.node_dim, args.edge_dim, args.edge_mode,
+                        model_types, args.dropout).to(device)
     impute_model = MLPNet([args.node_dim, args.node_dim], 1,
                           hidden_layer_sizes=impute_hiddens,
                           dropout=args.dropout).to(device)

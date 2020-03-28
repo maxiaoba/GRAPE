@@ -27,11 +27,11 @@ if args.domain == 'uci':
     from uci.uci_data import load_data
     data = load_data(args)
 
-model = torch.load(load_path+'model'+load_args.log_extra+'.pt')
+model = torch.load(load_path+'model'+load_args.log_extra+'.pt',map_location=torch.device('cpu'))
 model.eval()
-impute_model = torch.load(load_path+'impute_model'+load_args.log_extra+'.pt')
+impute_model = torch.load(load_path+'impute_model'+load_args.log_extra+'.pt',map_location=torch.device('cpu'))
 impute_model.eval()
-predict_model = torch.load(load_path+'predict_model'+load_args.log_extra+'.pt')
+predict_model = torch.load(load_path+'predict_model'+load_args.log_extra+'.pt',map_location=torch.device('cpu'))
 predict_model.eval()
 
 n_row, n_col = data.df_X.shape

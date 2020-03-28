@@ -22,9 +22,9 @@ def linear_regression(data, args, log_path, load_path):
     y_test = y[test_y_mask]
 
     if args.method == 'gnn_mdi':
-        model = torch.load(load_path+'model.pt')
+        model = torch.load(load_path+'model.pt',map_location=torch.device('cpu'))
         model.eval()
-        impute_model = torch.load(load_path+'impute_model.pt')
+        impute_model = torch.load(load_path+'impute_model.pt',map_location=torch.device('cpu'))
         impute_model.eval()
 
         x_embd = model(x, train_edge_attr, train_edge_index)

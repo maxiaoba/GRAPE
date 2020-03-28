@@ -22,3 +22,6 @@ def add_mc_subparser(subparsers):
     subparser.add_argument('--ratio', type=float, default=1.0,
                         help="For ml datasets, if ratio < 1, downsample training data to the\
                         target ratio")
+    # one hot edge attr
+    subparser.add_argument('--one_hot_edge', action='store_true', default=False,
+                    help="Make edge attr onehot vectors")

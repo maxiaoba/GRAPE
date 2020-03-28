@@ -8,7 +8,7 @@ datasets = ["concrete","energy","housing","kin8nm","naval","power",
 methods = ["knn","mean","mice","svd","gnn_mdi"]
 method_names = ["knn","mean","mice","svd","gnn"]
 comment = 'v1'
-seeds = [0] #[0,1,2,3,4]
+seeds = [0,1,2,3,4]
 
 with open("{}/results_mae.txt".format(pre_path), "w") as text_file:
 	text_file.write(' & ')

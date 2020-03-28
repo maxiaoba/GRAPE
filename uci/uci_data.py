@@ -68,19 +68,23 @@ def get_data(df_X, df_y, train_edge_prob, train_y_prob, seed=0, normalize=True):
     #train_edge_index is known, test_edge_index in unknwon, i.e. missing
     train_edge_index, train_edge_attr = mask_edge(edge_index, edge_attr,
                                                 double_train_edge_mask, True)
+    train_labels = train_edge_attr[:int(train_edge_attr.shape[0]/2),0]
     test_edge_index, test_edge_attr = mask_edge(edge_index, edge_attr,
                                                 ~double_train_edge_mask, True)
-
+    test_labels = test_edge_attr[:int(test_edge_attr.shape[0]/2),0]
     #mask the y-values during training, i.e. how we split the training and test sets
     train_y_mask = get_known_mask(train_y_prob, y.shape[0])
     test_y_mask = ~train_y_mask
 
     data = Data(x=x, y=y, edge_index=edge_index, edge_attr=edge_attr,
             train_y_mask=train_y_mask, test_y_mask=test_y_mask,
-            train_edge_mask = train_edge_mask,
             train_edge_index=train_edge_index,train_edge_attr=train_edge_attr,
+            train_edge_mask=train_edge_mask,train_labels=train_labels,
             test_edge_index=test_edge_index,test_edge_attr=test_edge_attr,
-            df_X=df_X,df_y=df_y)
+            test_edge_mask=~train_edge_mask,test_labels=test_labels, 
+            df_X=df_X,df_y=df_y,
+            edge_attr_dim=train_edge_attr.shape[-1]
+            )
     
     return data
 

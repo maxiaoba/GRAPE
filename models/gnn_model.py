@@ -9,8 +9,8 @@ from models.egsage import EGraphSage
 
 class GNNStack(torch.nn.Module):
     def __init__(self, 
-                node_input_dim, node_dim,
-                edge_dim, edge_mode,
+                node_input_dim, edge_input_dim,
+                node_dim, edge_dim, edge_mode,
                 model_types, dropout):
         super(GNNStack, self).__init__()
         self.dropout = dropout
@@ -18,7 +18,8 @@ class GNNStack(torch.nn.Module):
         self.gnn_layer_num = len(model_types)
 
         # convs
-        self.convs = self.build_convs(node_input_dim, node_dim, edge_dim, edge_mode, model_types)
+        self.convs = self.build_convs(node_input_dim, edge_input_dim,
+                                    node_dim, edge_dim, edge_mode, model_types)
 
         # post node update
         self.node_post_mlp = nn.Sequential(
@@ -28,12 +29,13 @@ class GNNStack(torch.nn.Module):
             nn.Linear(node_dim, node_dim)
             )
 
-        self.edge_update_mlps = self.build_edge_update_mlps(node_dim, edge_dim, self.gnn_layer_num)
+        self.edge_update_mlps = self.build_edge_update_mlps(node_dim, edge_input_dim, edge_dim, self.gnn_layer_num)
 
-    def build_convs(self, node_input_dim, node_dim, edge_dim, edge_mode, model_types):
+    def build_convs(self, node_input_dim, edge_input_dim,
+                     node_dim, edge_dim, edge_mode, model_types):
         convs = nn.ModuleList()
         conv = self.build_conv_model(model_types[0],node_input_dim,node_dim,
-                                    1, edge_mode)
+                                    edge_input_dim, edge_mode)
         convs.append(conv)
         for l in range(1,len(model_types)):
             conv = self.build_conv_model(model_types[l],node_dim, node_dim,
@@ -54,10 +56,10 @@ class GNNStack(torch.nn.Module):
         elif model_type == 'EGSAGE':
             return EGraphSage(node_in_dim,node_out_dim,edge_dim,edge_mode)
 
-    def build_edge_update_mlps(self, node_dim, edge_dim, gnn_layer_num):
+    def build_edge_update_mlps(self, node_dim, edge_input_dim, edge_dim, gnn_layer_num):
         edge_update_mlps = nn.ModuleList()
         edge_update_mlp = nn.Sequential(
-                nn.Linear(node_dim+node_dim+1,edge_dim),
+                nn.Linear(node_dim+node_dim+edge_input_dim,edge_dim),
                 nn.ReLU(),
                 )
         edge_update_mlps.append(edge_update_mlp)

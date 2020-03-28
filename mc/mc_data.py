@@ -9,7 +9,7 @@ import random
 import numpy as np
 import math
 
-from utils.utils import get_known_mask, mask_edge
+from utils.utils import get_known_mask, mask_edge, one_hot
 from mc.preprocessing import *
 
 def create_node(df):
@@ -25,7 +25,11 @@ def get_data(u_features, v_features, adj_train,
     train_labels, train_u_indices, train_v_indices,
     val_labels, val_u_indices, val_v_indices, 
     test_labels, test_u_indices, test_v_indices, 
-    class_values):
+    class_values, one_hot_edge):
+    train_indices = train_labels
+    val_indices =val_labels
+    test_indices = test_labels
+    # indices are the index in class_values
     train_labels = torch.FloatTensor(class_values[train_labels])
     val_labels = torch.FloatTensor(class_values[val_labels])
     test_labels = torch.FloatTensor(class_values[test_labels])
@@ -48,49 +52,62 @@ def get_data(u_features, v_features, adj_train,
     train_edge_index = torch.tensor([np.append(train_u_indices,train_v_indices),
                         np.append(train_v_indices,train_u_indices)],
                         dtype=int)
-    train_edge_attr = torch.tensor(np.append(train_labels,train_labels)[:,None],
-                        dtype=torch.float)
+    if one_hot_edge:
+        train_edge_attr = one_hot(train_indices, len(class_values))
+        train_edge_attr = torch.cat((train_edge_attr, train_edge_attr),0)
+    else:
+        train_edge_attr = torch.tensor(np.append(train_labels,train_labels)[:,None],
+                            dtype=torch.float)
 
     val_v_indices = val_v_indices + n_row
     val_edge_index = torch.tensor([np.append(val_u_indices,val_v_indices),
                         np.append(val_v_indices,val_u_indices)],
                         dtype=int)
-    val_edge_attr = torch.tensor(np.append(val_labels,val_labels)[:,None],
-                        dtype=torch.float)
+    if one_hot_edge:
+        val_edge_attr = one_hot(val_indices, len(class_values))
+        val_edge_attr = torch.cat((val_edge_attr, val_edge_attr),0)
+    else:
+        val_edge_attr = torch.tensor(np.append(val_labels,val_labels)[:,None],
+                            dtype=torch.float)
 
     test_v_indices = test_v_indices + n_row
     test_edge_index = torch.tensor([np.append(test_u_indices,test_v_indices),
                         np.append(test_v_indices,test_u_indices)],
                         dtype=int)
-    test_edge_attr = torch.tensor(np.append(test_labels,test_labels)[:,None],
-                        dtype=torch.float)
+    if one_hot_edge:
+        test_edge_attr = one_hot(test_indices, len(class_values))
+        test_edge_attr = torch.cat((test_edge_attr, test_edge_attr),0)
+    else:
+        test_edge_attr = torch.tensor(np.append(test_labels,test_labels)[:,None],
+                            dtype=torch.float)
 
     data = Data(x=x,
-            train_edge_index=train_edge_index,train_edge_attr=train_edge_attr,
-            val_edge_index=val_edge_index,val_edge_attr=val_edge_attr,
-            test_edge_index=test_edge_index,test_edge_attr=test_edge_attr,
+            train_edge_index=train_edge_index,train_edge_attr=train_edge_attr,train_labels=train_labels,
+            val_edge_index=val_edge_index,val_edge_attr=val_edge_attr,val_labels=val_labels,
+            test_edge_index=test_edge_index,test_edge_attr=test_edge_attr,test_labels=test_labels,
+            edge_attr_dim=train_edge_attr.shape[-1]
             )
     return data
 
-def split_edge(edge_attr,edge_index,batch_size):
-    edge_num = int(edge_attr.shape[0]/2)
-    perm = np.random.permutation(edge_num)
-    edge_attrs, edge_indexes = [],[]
-    index = 0
-    while index + batch_size < edge_num:
-        edge_attr_i = torch.cat((edge_attr[index:index+batch_size,:],
-                                edge_attr[index:index+batch_size,:]),dim=0)
-        edge_start_i = torch.cat([edge_index[0,index:index+batch_size],
-                                    edge_index[1,index:index+batch_size]])
-        edge_end_i = torch.cat([edge_index[1,index:index+batch_size],
-                                    edge_index[0,index:index+batch_size]])
-        edge_index_i = torch.tensor([edge_start_i.detach().numpy(),
-                                    edge_end_i.detach().numpy()],
-                                    dtype=int)
-        index += batch_size
-        edge_attrs.append(edge_attr_i)
-        edge_indexes.append(edge_index_i)
-    return edge_attrs, edge_indexes
+# def split_edge(edge_attr,edge_index,batch_size):
+#     edge_num = int(edge_attr.shape[0]/2)
+#     perm = np.random.permutation(edge_num)
+#     edge_attrs, edge_indexes = [],[]
+#     index = 0
+#     while index + batch_size < edge_num:
+#         edge_attr_i = torch.cat((edge_attr[index:index+batch_size,:],
+#                                 edge_attr[index:index+batch_size,:]),dim=0)
+#         edge_start_i = torch.cat([edge_index[0,index:index+batch_size],
+#                                     edge_index[1,index:index+batch_size]])
+#         edge_end_i = torch.cat([edge_index[1,index:index+batch_size],
+#                                     edge_index[0,index:index+batch_size]])
+#         edge_index_i = torch.tensor([edge_start_i.detach().numpy(),
+#                                     edge_end_i.detach().numpy()],
+#                                     dtype=int)
+#         index += batch_size
+#         edge_attrs.append(edge_attr_i)
+#         edge_indexes.append(edge_index_i)
+#     return edge_attrs, edge_indexes
 
 def load_data(args):
     mc_path = osp.dirname(osp.abspath(inspect.getfile(inspect.currentframe())))
@@ -165,6 +182,6 @@ def load_data(args):
     data = get_data(u_features, v_features, adj_train,
         train_labels, train_u_indices, train_v_indices, \
         val_labels, val_u_indices, val_v_indices, test_labels, \
-        test_u_indices, test_v_indices, class_values)
+        test_u_indices, test_v_indices, class_values, args.one_hot_edge)
     return data
 

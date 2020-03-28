@@ -60,6 +60,10 @@ def mask_edge(edge_index,edge_attr,mask,remove_edge):
         edge_attr[~mask] = 0.
     return edge_index, edge_attr
 
+def one_hot(batch,depth):
+    ones = torch.sparse.torch.eye(depth)
+    return ones.index_select(0,torch.tensor(batch,dtype=int))
+
 def construct_missing_X(train_mask, df):
     nrow, ncol = df.shape
     data_incomplete = np.zeros((nrow, ncol))

@@ -30,9 +30,9 @@ elif args.domain == 'mc':
     from mc.mc_data import load_data
     data = load_data(args)
 
-model = torch.load(load_path+'model'+load_args.log_extra+'.pt')
+model = torch.load(load_path+'model'+load_args.log_extra+'.pt',map_location=torch.device('cpu'))
 model.eval()
-impute_model = torch.load(load_path+'impute_model'+load_args.log_extra+'.pt')
+impute_model = torch.load(load_path+'impute_model'+load_args.log_extra+'.pt',map_location=torch.device('cpu'))
 impute_model.eval()
 
 x = data.x.clone().detach()
