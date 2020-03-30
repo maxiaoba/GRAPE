@@ -25,6 +25,9 @@ def add_mc_subparser(subparsers):
     # one hot edge attr
     subparser.add_argument('--one_hot_edge', action='store_true', default=False,
                     help="Make edge attr onehot vectors")
+    # normalize edge attr
+    subparser.add_argument('--norm_label', action='store_true', default=False,
+                    help="Normalize edge labels")
     # cross_entropy loss
     subparser.add_argument('--ce_loss', action='store_true', default=False,
                     help="Use cross entropy loss")

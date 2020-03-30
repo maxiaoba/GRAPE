@@ -25,19 +25,18 @@ def get_data(u_features, v_features, adj_train,
     train_labels, train_u_indices, train_v_indices,
     val_labels, val_u_indices, val_v_indices, 
     test_labels, test_u_indices, test_v_indices, 
-    class_values, one_hot_edge, ce_loss):
+    class_values, one_hot_edge, norm_label, ce_loss):
     train_indices = train_labels
-    val_indices =val_labels
+    val_indices = val_labels
     test_indices = test_labels
     # indices are the index in class_values
-    if ce_loss:
-        train_labels = torch.tensor(train_labels,dtype=int)
-        val_labels = torch.tensor(val_labels,dtype=int)
-        test_labels = torch.tensor(test_labels,dtype=int)
-    else:
-        train_labels = torch.FloatTensor(class_values[train_labels])
-        val_labels = torch.FloatTensor(class_values[val_labels])
-        test_labels = torch.FloatTensor(class_values[test_labels])
+    train_labels = torch.FloatTensor(class_values[train_labels])
+    val_labels = torch.FloatTensor(class_values[val_labels])
+    test_labels = torch.FloatTensor(class_values[test_labels])
+    if norm_label:
+        train_labels = train_labels/max(class_values)
+        val_labels = val_labels/max(class_values)
+        test_labels = test_labels/max(class_values)
 
     n_row, n_col = adj_train.shape
     if (u_features is None) or (v_features is None):
@@ -85,6 +84,11 @@ def get_data(u_features, v_features, adj_train,
     else:
         test_edge_attr = torch.tensor(np.append(test_labels,test_labels)[:,None],
                             dtype=torch.float)
+        
+    if ce_loss:
+        train_labels = torch.tensor(train_indices,dtype=int)
+        val_labels = torch.tensor(val_indices,dtype=int)
+        test_labels = torch.tensor(test_indices,dtype=int)
 
     data = Data(x=x,
             train_edge_index=train_edge_index,train_edge_attr=train_edge_attr,train_labels=train_labels,
@@ -188,6 +192,6 @@ def load_data(args):
         train_labels, train_u_indices, train_v_indices, \
         val_labels, val_u_indices, val_v_indices, test_labels, \
         test_u_indices, test_v_indices, class_values,
-        args.one_hot_edge, args.ce_loss)
+        args.one_hot_edge, args.norm_label, args.ce_loss)
     return data
 

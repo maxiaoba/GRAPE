@@ -22,6 +22,8 @@ result = objectview(result)
 args = result.args
 if not hasattr(args,'one_hot_edge'):
     args.one_hot_edge = False
+if not hasattr(args,'ce_loss'):
+    args.ce_loss = False
 for key in args.__dict__.keys():
     print(key,': ',args.__dict__[key])
 
@@ -44,11 +46,22 @@ train_labels = data.train_labels.clone().detach()
 test_edge_index = data.test_edge_index.clone().detach()
 test_edge_attr = data.test_edge_attr.clone().detach()
 test_labels = data.test_labels.clone().detach()
+if hasattr(data,'class_values'):
+    class_values = data.class_values.clone().detach()
 
 x_embd = model(x, train_edge_attr, train_edge_index)
 pred = impute_model([x_embd[test_edge_index[0],:],x_embd[test_edge_index[1],:]])
-pred_test = pred[:int(test_edge_attr.shape[0]/2),0]
-label_test = test_labels
+if hasattr(args,'ce_loss') and args.ce_loss:
+    pred_test = class_values[pred[:int(test_edge_attr.shape[0] / 2)].max(1)[1]]
+    label_test = class_values[test_labels]
+else:
+    pred_test = pred[:int(test_edge_attr.shape[0] / 2),0]
+    label_test = test_labels
+
+mse = F.mse_loss(pred_test, label_test)
+test_rmse = np.sqrt(mse.item())
+l1 = F.l1_loss(pred_test, label_test)
+test_l1 = l1.item()
 
 mse = F.mse_loss(pred_test, label_test)
 test_rmse = np.sqrt(mse.item())

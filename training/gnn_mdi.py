@@ -108,6 +108,11 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
             if hasattr(args,'ce_loss') and args.ce_loss:
                 pred_valid = class_values[pred[:int(valid_edge_attr.shape[0] / 2)].max(1)[1]]
                 label_valid = class_values[valid_labels]
+            elif hasattr(args,'norm_label') and args.norm_label:
+                pred_valid = pred[:int(valid_edge_attr.shape[0] / 2),0]
+                pred_valid = pred_valid * max(class_values)
+                label_valid = valid_labels
+                label_valid = label_valid * max(class_values)
             else:
                 pred_valid = pred[:int(valid_edge_attr.shape[0] / 2),0]
                 label_valid = valid_labels
@@ -133,6 +138,11 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
         if hasattr(args,'ce_loss') and args.ce_loss:
             pred_test = class_values[pred[:int(test_edge_attr.shape[0] / 2)].max(1)[1]]
             label_test = class_values[test_labels]
+        elif hasattr(args,'norm_label') and args.norm_label:
+            pred_test = pred[:int(test_edge_attr.shape[0] / 2),0]
+            pred_test = pred_test * max(class_values)
+            label_test = test_labels
+            label_test = label_test * max(class_values)
         else:
             pred_test = pred[:int(test_edge_attr.shape[0] / 2),0]
             label_test = test_labels
