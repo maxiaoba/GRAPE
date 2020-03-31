@@ -52,6 +52,7 @@ for key in args.__dict__.keys():
 
 plot_result(result, load_path)
 print(np.min(result.test_rmse),np.argmin(result.test_rmse))
+print(result.test_rmse[999],999)
 
 # torch.manual_seed(args.seed)
 # if torch.cuda.is_available():

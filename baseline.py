@@ -15,7 +15,7 @@ def baseline_inpute(data,method='mean'):
         X_filled_knn = KNN(k=3, verbose=False).fit_transform(X_incomplete)
         return X_filled_knn
     elif method == 'svd':
-        X_filled_svd = IterativeSVD(rank=9,verbose=False).fit_transform(X_incomplete)
+        X_filled_svd = IterativeSVD(rank=X_incomplete.shape[1]-1,verbose=False).fit_transform(X_incomplete)
         return X_filled_svd
     elif method == 'mice':
         X_filled_mice = IterativeImputer().fit_transform(X_incomplete)

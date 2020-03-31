@@ -39,11 +39,9 @@ def train(data, method):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--uci_data', type=str, default='housing') # 'pks', 'cancer', 'housing', 'wine'
     parser.add_argument('--train_edge', type=float, default=0.7)
     parser.add_argument('--train_y', type=float, default=0.7)
     parser.add_argument('--comment', type=str, default='v1')
-    parser.add_argument('--seed', type=int, default=0)
     args = parser.parse_args()
     # device is cpu by default
 
@@ -55,11 +53,15 @@ def main():
         df_X = pd.DataFrame(df_np[:, :-1])
         for seed in [0,1,2,3,4]:
             data = get_data(df_X, df_y, args.train_edge, args.train_y, seed)
-            for method in ['mean', 'knn', 'svd', 'mice']:
+            for method in ['gnn','mean', 'knn', 'svd', 'mice']:
                 log_path = './Data/mdi_results/{}_{}/{}/{}/'.format(method, args.comment, dataset, seed)
                 if not os.path.isdir(log_path):
                     os.makedirs(log_path)
-                mae = train(data, method)
+                if method == 'gnn':
+                    result = joblib.load(log_path+'result.pkl')
+                    mae = result['test_l1'][-1]
+                else:
+                    mae = train(data, method)
 
                 with open("{}results.txt".format(log_path), "w") as text_file:
                     text_file.write('{}'.format(mae))
