@@ -3,13 +3,13 @@ import torch
 import torch.nn.functional as F
 import pickle
 
-from models.gnn_model import GNNStack
+from models.gnn_model import get_gnn
 from models.prediction_model import MLPNet
 from utils.plot_utils import plot_curve, plot_sample
 from utils.utils import build_optimizer, objectview, get_known_mask, mask_edge
 
 def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
-    model_types = args.model_types.split('_')
+    model = get_gnn(data, args).to(device)
     if args.impute_hiddens == '':
         impute_hiddens = []
     else:
@@ -18,10 +18,6 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
         output_dim = len(data.class_values)
     else:
         output_dim = 1
-    # build model
-    model = GNNStack(data.num_node_features, data.edge_attr_dim,
-                        args.node_dim, args.edge_dim, args.edge_mode,
-                        model_types, args.dropout, args.layer_activation).to(device)
     impute_model = MLPNet([args.node_dim, args.node_dim], output_dim,
                             hidden_layer_sizes=impute_hiddens,
                             dropout=args.dropout).to(device)
