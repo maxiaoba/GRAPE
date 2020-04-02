@@ -11,21 +11,21 @@ from utils.utils import get_activation
 
 def get_gnn(data, args):
     model_types = args.model_types.split('_')
-    if args.normalize_embs is None:
-        normalize_embs = [True,]*len(model_types)
+    if args.norm_embs is None:
+        norm_embs = [True,]*len(model_types)
     else:
-        normalize_embs = list(map(bool,map(int,args.normalize_embs.split('_'))))
-    if args.node_post_mlp_hiddens is None:
-        node_post_mlp_hiddens = [args.node_dim]
+        norm_embs = list(map(bool,map(int,args.norm_embs.split('_'))))
+    if args.post_hiddens is None:
+        post_hiddens = [args.node_dim]
     else:
-        node_post_mlp_hiddens = list(map(int,args.node_post_mlp_hiddens.split('_')))
-
+        post_hiddens = list(map(int,args.post_hiddens.split('_')))
+    print(model_types, norm_embs, post_hiddens)
     # build model
     model = GNNStack(data.num_node_features, data.edge_attr_dim,
                         args.node_dim, args.edge_dim, args.edge_mode,
                         model_types, args.dropout,
-                        node_post_mlp_hiddens,
-                        normalize_embs)
+                        post_hiddens,
+                        norm_embs)
     return model
 
 class GNNStack(torch.nn.Module):

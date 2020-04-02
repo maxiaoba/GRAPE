@@ -15,8 +15,8 @@ from uci.uci_subparser import add_uci_subparser
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_types', type=str, default='EGSAGE_EGSAGE_EGSAGE')
-    parser.add_argument('--node_post_mlp_hiddens', type=str, default=None,) # default to be 1 hidden of node_dim
-    parser.add_argument('--normalize_embs', type=str, default=None,) # default to be all true
+    parser.add_argument('--post_hiddens', type=str, default=None,) # default to be 1 hidden of node_dim
+    parser.add_argument('--norm_embs', type=str, default=None,) # default to be all true
     parser.add_argument('--node_dim', type=int, default=64)
     parser.add_argument('--edge_dim', type=int, default=64)
     parser.add_argument('--edge_mode', type=int, default=1)  # 0: use it as weight 1: as input to mlp
