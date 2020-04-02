@@ -12,8 +12,8 @@ def np_random(seed=None):
 def get_activation(activation):
     if activation == 'relu':
         return torch.nn.ReLU()
-    elif activation is None:
-        return torch.nn. Identity()
+    elif (activation is None) or (activation == 'none'):
+        return torch.nn.Identity()
     else:
         raise NotImplementedError
 

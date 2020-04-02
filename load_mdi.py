@@ -54,6 +54,11 @@ pred = impute_model([x_embd[test_edge_index[0],:],x_embd[test_edge_index[1],:]])
 if hasattr(args,'ce_loss') and args.ce_loss:
     pred_test = class_values[pred[:int(test_edge_attr.shape[0] / 2)].max(1)[1]]
     label_test = class_values[test_labels]
+elif hasattr(args,'norm_label') and args.norm_label:
+    pred_test = pred[:int(test_edge_attr.shape[0] / 2),0]
+    pred_test = pred_test * max(class_values)
+    label_test = test_labels
+    label_test = label_test * max(class_values)
 else:
     pred_test = pred[:int(test_edge_attr.shape[0] / 2),0]
     label_test = test_labels

@@ -6,16 +6,18 @@ import torch_geometric.nn as pyg_nn
 import torch_geometric.utils as pyg_utils
 from models.egcn import EGCNConv
 from models.egsage import EGraphSage
+from utils.utils import get_activation
 
 class GNNStack(torch.nn.Module):
     def __init__(self, 
                 node_input_dim, edge_input_dim,
                 node_dim, edge_dim, edge_mode,
-                model_types, dropout):
+                model_types, dropout, layer_activation='relu'):
         super(GNNStack, self).__init__()
         self.dropout = dropout
         self.model_types = model_types
         self.gnn_layer_num = len(model_types)
+        self.layer_activation = get_activation(layer_activation)
 
         # convs
         self.convs = self.build_convs(node_input_dim, edge_input_dim,
@@ -86,7 +88,8 @@ class GNNStack(torch.nn.Module):
                 x = conv(x, edge_attr, edge_index)
             else:
                 x = conv(x, edge_index)
-            x = F.relu(x)
+            # x = F.relu(x)
+            self.layer_activation(x)
             x = F.dropout(x, p=self.dropout, training=self.training)
             edge_attr = self.update_edge_attr(x, edge_attr, edge_index, self.edge_update_mlps[l])
             #print(edge_attr.shape)

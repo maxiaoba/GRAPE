@@ -21,7 +21,7 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
     # build model
     model = GNNStack(data.num_node_features, data.edge_attr_dim,
                         args.node_dim, args.edge_dim, args.edge_mode,
-                        model_types, args.dropout).to(device)
+                        model_types, args.dropout, args.layer_activation).to(device)
     impute_model = MLPNet([args.node_dim, args.node_dim], output_dim,
                             hidden_layer_sizes=impute_hiddens,
                             dropout=args.dropout).to(device)
