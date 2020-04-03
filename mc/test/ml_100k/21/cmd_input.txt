@@ -1,0 +1,1 @@
+python train_mdi.py --epochs 2000 --log_dir 21 --post_hiddens 0 mc --testing --norm_label --data ml_100k
