@@ -39,6 +39,17 @@ def main():
     args = parser.parse_args()
     print(args)
 
+    # select device
+    if torch.cuda.is_available():
+        cuda = auto_select_gpu()
+        os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+        os.environ['CUDA_VISIBLE_DEVICES'] = str(cuda)
+        print('Using GPU {}'.format(os.environ['CUDA_VISIBLE_DEVICES']))
+        device = torch.device('cuda:{}'.format(cuda))
+    else:
+        print('Using CPU')
+        device = torch.device('cpu')
+
     seed = args.seed
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -54,7 +65,7 @@ def main():
     with open(osp.join(log_path, 'cmd_input.txt'), 'a') as f:
         f.write(cmd_input)
 
-    train_gnn_y(data, args, log_path)
+    train_gnn_y(data, args, log_path, device)
 
 if __name__ == '__main__':
     main()
