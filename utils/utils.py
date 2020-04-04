@@ -70,7 +70,7 @@ def soft_one_hot(batch,depth):
     for i,x in enumerate(batch):
         for r in range(depth):
             encodings[i,r] = torch.exp(-((x-float(r))/float(depth))**2)
-        print(torch.max(encodings[i,:]),torch.min(encodings[i,:]))
+        encodings[i,:] = encodings[i,:]/torch.sum(encodings[i,:])
     return encodings
 
 def construct_missing_X(train_mask, df):
