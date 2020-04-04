@@ -9,7 +9,7 @@ import random
 import numpy as np
 import math
 
-from utils.utils import get_known_mask, mask_edge, one_hot
+from utils.utils import get_known_mask, mask_edge, one_hot, soft_one_hot
 from mc.preprocessing import *
 
 def create_node(df):
@@ -25,7 +25,7 @@ def get_data(u_features, v_features, adj_train,
     train_labels, train_u_indices, train_v_indices,
     val_labels, val_u_indices, val_v_indices, 
     test_labels, test_u_indices, test_v_indices, 
-    class_values, one_hot_edge, norm_label, ce_loss):
+    class_values, one_hot_edge, soft_one_hot_edge, norm_label, ce_loss):
     train_indices = train_labels
     val_indices = val_labels
     test_indices = test_labels
@@ -80,6 +80,9 @@ def get_data(u_features, v_features, adj_train,
                         dtype=int)
     if one_hot_edge:
         test_edge_attr = one_hot(test_indices, len(class_values))
+        test_edge_attr = torch.cat((test_edge_attr, test_edge_attr),0)
+    elif soft_one_hot_edge:
+        test_edge_attr = soft_one_hot(test_indices, len(class_values))
         test_edge_attr = torch.cat((test_edge_attr, test_edge_attr),0)
     else:
         test_edge_attr = torch.tensor(np.append(test_labels,test_labels)[:,None],
@@ -192,6 +195,6 @@ def load_data(args):
         train_labels, train_u_indices, train_v_indices, \
         val_labels, val_u_indices, val_v_indices, test_labels, \
         test_u_indices, test_v_indices, class_values,
-        args.one_hot_edge, args.norm_label, args.ce_loss)
+        args.one_hot_edge, args.soft_one_hot_edge, args.norm_label, args.ce_loss)
     return data
 
