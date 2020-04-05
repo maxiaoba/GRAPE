@@ -25,6 +25,9 @@ def add_mc_subparser(subparsers):
     # one hot edge attr
     subparser.add_argument('--one_hot_edge', action='store_true', default=False,
                     help="Make edge attr onehot vectors")
+    # one hot edge attr
+    subparser.add_argument('--soft_one_hot_edge', action='store_true', default=False,
+                    help="Make edge attr soft onehot vectors")
     # normalize edge attr
     subparser.add_argument('--norm_label', action='store_true', default=False,
                     help="Normalize edge labels")

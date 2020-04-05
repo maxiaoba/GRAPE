@@ -64,6 +64,15 @@ def one_hot(batch,depth):
     ones = torch.sparse.torch.eye(depth)
     return ones.index_select(0,torch.tensor(batch,dtype=int))
 
+def soft_one_hot(batch,depth):
+    batch = torch.tensor(batch)
+    encodings = torch.zeros((batch.shape[0],depth))
+    for i,x in enumerate(batch):
+        for r in range(depth):
+            encodings[i,r] = torch.exp(-((x-float(r))/float(depth))**2)
+        encodings[i,:] = encodings[i,:]/torch.sum(encodings[i,:])
+    return encodings
+
 def construct_missing_X(train_mask, df):
     nrow, ncol = df.shape
     data_incomplete = np.zeros((nrow, ncol))
