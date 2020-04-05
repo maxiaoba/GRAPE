@@ -9,18 +9,24 @@ from utils.plot_utils import plot_curve, plot_sample
 from utils.utils import build_optimizer, objectview, get_known_mask, mask_edge
 
 def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
-    model = get_gnn(data, args).to(device)
-    if args.impute_hiddens == '':
-        impute_hiddens = []
+    if args.transfer_dir:
+        load_path = './{}/test/{}/{}/'.format(args.domain,args.data,args.transfer_dir)
+        print("loading fron {} with {}".format(load_path,args.transfer_extra))
+        model = torch.load(load_path+'model'+args.transfer_extra+'.pt',map_location=device)
+        impute_model = torch.load(load_path+'impute_model'+args.transfer_extra+'.pt',map_location=device)
     else:
-        impute_hiddens = list(map(int,args.impute_hiddens.split('_')))
-    if hasattr(args,'ce_loss') and args.ce_loss:
-        output_dim = len(data.class_values)
-    else:
-        output_dim = 1
-    impute_model = MLPNet([args.node_dim, args.node_dim], output_dim,
-                            hidden_layer_sizes=impute_hiddens,
-                            dropout=args.dropout).to(device)
+        model = get_gnn(data, args).to(device)
+        if args.impute_hiddens == '':
+            impute_hiddens = []
+        else:
+            impute_hiddens = list(map(int,args.impute_hiddens.split('_')))
+        if hasattr(args,'ce_loss') and args.ce_loss:
+            output_dim = len(data.class_values)
+        else:
+            output_dim = 1
+        impute_model = MLPNet([args.node_dim, args.node_dim], output_dim,
+                                hidden_layer_sizes=impute_hiddens,
+                                dropout=args.dropout).to(device)
     trainable_parameters = list(model.parameters()) \
                            + list(impute_model.parameters())
 
