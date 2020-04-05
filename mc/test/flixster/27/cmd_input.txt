@@ -1,0 +1,1 @@
+python train_mdi.py --epochs 5000 --log_dir 27 --norm_embs 0_0_1 --edge_dim 16 --node_dim 16 --impute_hiddens  --post_hiddens 0 --valid 0.1 mc --testing --norm_label --data flixster
