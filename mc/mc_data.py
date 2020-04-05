@@ -191,6 +191,8 @@ def load_data(args):
     '''
         Transfer to torch geometric Data
     '''
+    if not hasattr(args,'soft_one_hot_edge'):
+        args.soft_one_hot_edge = False
     data = get_data(u_features, v_features, adj_train,
         train_labels, train_u_indices, train_v_indices, \
         val_labels, val_u_indices, val_v_indices, test_labels, \
