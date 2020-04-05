@@ -31,7 +31,7 @@ def train(data, data_test, args, log_path, device):
     # build model
     model = GNNStack(data.num_node_features, args.node_dim,
                             args.edge_dim, args.edge_mode,
-                            args.model_types, args.dropout).to(device)
+                            args.model_types, args.dropout, args.pre_linear_dim).to(device)
     impute_model = MLPNet([args.node_dim, args.node_dim], 1, 
                             hidden_layer_sizes=args.impute_hiddens,
                             dropout=args.dropout).to(device)
@@ -106,7 +106,7 @@ def train(data, data_test, args, log_path, device):
         Train_loss.append(train_loss)
         Valid_mse.append(test_mse)
         Valid_l1.append(test_l1)
-        if epoch % 100 == 0:
+        if epoch % 10 == 0:
             print('epoch: {}, train mse: {}, test mse: {}, test l1: {}, path: {}'.format(epoch, train_loss, test_mse, test_l1, log_path))
         # print('epoch: ',epoch)
         # print('loss: ',train_loss)
@@ -139,6 +139,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--uci_data', type=str, default='housing') # 'pks', 'cancer', 'housing', 'wine'
     parser.add_argument('--model_types', type=str, default='EGSAGE_EGSAGE_EGSAGE')
+    parser.add_argument('--pre_linear_dim', type=int, default=16)
     parser.add_argument('--node_dim', type=int, default=16)
     parser.add_argument('--edge_dim', type=int, default=16)
     parser.add_argument('--edge_mode', type=int, default=1) # 0: use it as weight 1: as input to mlp
@@ -184,7 +185,7 @@ def main():
     #    df_np = np.loadtxt('./Data/uci_all/{}/train_edge_mask/data.txt'.format(dataset))
     print("Start loading data...")
     df_np = pd.read_csv('./Data/RNAseq/rnaseq_normalized.csv', header=None, sep=" ")
-    df_X = pd.DataFrame(df_np).iloc[:,0:300] #extract a subset for experiment
+    df_X = pd.DataFrame(df_np)#.iloc[:,0:2000] #extract a subset for experiment
     df_y = pd.DataFrame([0] * df_X.shape[0])
 
     train_fraction = 0.7
