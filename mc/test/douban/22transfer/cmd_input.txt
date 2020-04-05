@@ -1,0 +1,1 @@
+python train_mdi.py --epochs 100 --log_dir 22transfer --transfer_dir 22 --transfer_extra _best_valid_rmse --lr 1e-4 --post_hiddens 0 --valid 0.1 mc --testing --norm_label --data douban
