@@ -59,6 +59,9 @@ def get_data(u_features, v_features, adj_train,
     if one_hot_edge:
         train_edge_attr = one_hot(train_indices, len(class_values))
         train_edge_attr = torch.cat((train_edge_attr, train_edge_attr),0)
+    elif soft_one_hot_edge:
+        train_edge_attr = soft_one_hot(train_indices, len(class_values))
+        train_edge_attr = torch.cat((train_edge_attr, train_edge_attr),0)
     else:
         train_edge_attr = torch.tensor(np.append(train_labels,train_labels)[:,None],
                             dtype=torch.float)
@@ -69,6 +72,9 @@ def get_data(u_features, v_features, adj_train,
                         dtype=int)
     if one_hot_edge:
         val_edge_attr = one_hot(val_indices, len(class_values))
+        val_edge_attr = torch.cat((val_edge_attr, val_edge_attr),0)
+    elif soft_one_hot_edge:
+        val_edge_attr = soft_one_hot(val_indices, len(class_values))
         val_edge_attr = torch.cat((val_edge_attr, val_edge_attr),0)
     else:
         val_edge_attr = torch.tensor(np.append(val_labels,val_labels)[:,None],

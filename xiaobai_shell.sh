@@ -1,5 +1,3 @@
-python linear_regression_uci_y_all.py --seed 0
-python linear_regression_uci_y_all.py --seed 1
-python linear_regression_uci_y_all.py --seed 2
-python linear_regression_uci_y_all.py --seed 3
-python linear_regression_uci_y_all.py --seed 4
+python train_mdi.py --epochs 5000 --log_dir 19onehot --norm_embs 0_0_0 --valid 0.1 mc --testing --norm_label --data yahoo_music --one_hot_edge
+python train_mdi.py --epochs 5000 --log_dir 19softonehot --norm_embs 0_0_0 --valid 0.1 mc --testing --norm_label --data yahoo_music --soft_one_hot_edge
+python train_mdi.py --epochs 5000 --log_dir 26softonehot --norm_embs 0_0_0 --edge_dim 16 --node_dim 16 --impute_hiddens '' --post_hiddens 0 --valid 0.1 mc --testing --norm_label --data flixster --soft_one_hot_edge

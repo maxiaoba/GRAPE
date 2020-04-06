@@ -75,11 +75,6 @@ def train_gnn_y(data, args, log_path, device=torch.device('cpu')):
                 torch.sum(test_y_mask)))
 
     for epoch in range(args.epochs):
-        if scheduler is not None:
-            scheduler.step(epoch)
-        for param_group in opt.param_groups:
-            Lr.append(param_group['lr'])
-
         model.train()
         impute_model.train()
         predict_model.train()
@@ -100,6 +95,10 @@ def train_gnn_y(data, args, log_path, device=torch.device('cpu')):
         loss.backward()
         opt.step()
         train_loss = loss.item()
+        if scheduler is not None:
+            scheduler.step(epoch)
+        for param_group in opt.param_groups:
+            Lr.append(param_group['lr'])
 
         model.eval()
         impute_model.eval()

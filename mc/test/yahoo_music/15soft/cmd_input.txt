@@ -1,1 +1,0 @@
-python train_mdi.py --epochs 2000 --log_dir 15soft --valid 0.1 mc --testing --norm_label --soft_one_hot_edge --data yahoo_music
