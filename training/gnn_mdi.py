@@ -21,12 +21,12 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
     impute_model = MLPNet([args.node_dim, args.node_dim], output_dim,
                             hidden_layer_sizes=impute_hiddens,
                             dropout=args.dropout).to(device)
-    if args.transfer_dir:
+    if args.transfer_dir: # this ensures the valid mask is consistant
         load_path = './{}/test/{}/{}/'.format(args.domain,args.data,args.transfer_dir)
         print("loading fron {} with {}".format(load_path,args.transfer_extra))
         model = torch.load(load_path+'model'+args.transfer_extra+'.pt',map_location=device)
         impute_model = torch.load(load_path+'impute_model'+args.transfer_extra+'.pt',map_location=device)
-        
+
     trainable_parameters = list(model.parameters()) \
                            + list(impute_model.parameters())
 
@@ -50,6 +50,7 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
         class_values = data.class_values.clone().detach().to(device)
     if args.valid > 0.:
         valid_mask = get_known_mask(args.valid, int(all_train_edge_attr.shape[0] / 2)).to(device)
+        print("valid mask sum: ",torch.sum(valid_mask))
         train_labels = all_train_labels[~valid_mask]
         valid_labels = all_train_labels[valid_mask]
         double_valid_mask = torch.cat((valid_mask, valid_mask), dim=0)
