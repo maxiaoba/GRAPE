@@ -1,0 +1,1 @@
+python train_mdi.py --epochs 2000 --log_dir 13transfer2 --transfer_dir 13transfer --transfer_extra _best_valid_rmse --lr 1e-5 --valid 0.1 mc --testing --norm_label --data douban
