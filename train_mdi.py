@@ -37,6 +37,7 @@ def main():
     parser.add_argument('--valid', type=float, default=0.)
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--log_dir', type=str, default='0')
+    parser.add_argument('--save_model', type=int, default=1)
     parser.add_argument('--transfer_dir', type=str, default=None)
     parser.add_argument('--transfer_extra', type=str, default='')
     subparsers = parser.add_subparsers()
