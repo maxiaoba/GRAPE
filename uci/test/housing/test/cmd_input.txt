@@ -1,1 +1,0 @@
-python train_mdi.py --log_dir test --epochs 10 uci

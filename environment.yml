@@ -13,8 +13,8 @@ dependencies:
     # torch doesn't intall correctly
     # do this manually
     # pip install torch (with commands from official website)
-    # pip install --no-cache-dir torch-scatter
-    # pip install --no-cache-dir torch-sparse
-    # pip install --no-cache-dir torch-cluster
+    # pip install --no-cache-dir torch-scatter (diferent for cuda)
+    # pip install --no-cache-dir torch-sparse (diferent for cuda)
+    # pip install --no-cache-dir torch-cluster (diferent for cuda)
     # pip install torch-geometric==1.4.2
 
