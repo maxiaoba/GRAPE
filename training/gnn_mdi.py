@@ -105,65 +105,67 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
 
         model.eval()
         impute_model.eval()
-        if args.valid > 0.:
-            x_embd = model(x, train_edge_attr, train_edge_index)
-            pred = impute_model([x_embd[valid_edge_index[0], :], x_embd[valid_edge_index[1], :]])
+        with torch.no_grad():
+            if args.valid > 0.:
+                x_embd = model(x, train_edge_attr, train_edge_index)
+                pred = impute_model([x_embd[valid_edge_index[0], :], x_embd[valid_edge_index[1], :]])
+                if hasattr(args,'ce_loss') and args.ce_loss:
+                    pred_valid = class_values[pred[:int(valid_edge_attr.shape[0] / 2)].max(1)[1]]
+                    label_valid = class_values[valid_labels]
+                elif hasattr(args,'norm_label') and args.norm_label:
+                    pred_valid = pred[:int(valid_edge_attr.shape[0] / 2),0]
+                    pred_valid = pred_valid * max(class_values)
+                    label_valid = valid_labels
+                    label_valid = label_valid * max(class_values)
+                else:
+                    pred_valid = pred[:int(valid_edge_attr.shape[0] / 2),0]
+                    label_valid = valid_labels
+                mse = F.mse_loss(pred_valid, label_valid)
+                valid_rmse = np.sqrt(mse.item())
+                l1 = F.l1_loss(pred_valid, label_valid)
+                valid_l1 = l1.item()
+                if args.save_model:
+                    if valid_l1 < best_valid_l1:
+                        best_valid_l1 = valid_l1
+                        best_valid_l1_epoch = epoch
+                        torch.save(model, log_path + 'model_best_valid_l1.pt')
+                        torch.save(impute_model, log_path + 'impute_model_best_valid_l1.pt')
+                    if valid_rmse < best_valid_rmse:
+                        best_valid_rmse = valid_rmse
+                        best_valid_rmse_epoch = epoch
+                        torch.save(model, log_path + 'model_best_valid_rmse.pt')
+                        torch.save(impute_model, log_path + 'impute_model_best_valid_rmse.pt')
+                Valid_rmse.append(valid_rmse)
+                Valid_l1.append(valid_l1)
+
+            x_embd = model(x, all_train_edge_attr, all_train_edge_index)
+            pred = impute_model([x_embd[test_edge_index[0], :], x_embd[test_edge_index[1], :]])
             if hasattr(args,'ce_loss') and args.ce_loss:
-                pred_valid = class_values[pred[:int(valid_edge_attr.shape[0] / 2)].max(1)[1]]
-                label_valid = class_values[valid_labels]
+                pred_test = class_values[pred[:int(test_edge_attr.shape[0] / 2)].max(1)[1]]
+                label_test = class_values[test_labels]
             elif hasattr(args,'norm_label') and args.norm_label:
-                pred_valid = pred[:int(valid_edge_attr.shape[0] / 2),0]
-                pred_valid = pred_valid * max(class_values)
-                label_valid = valid_labels
-                label_valid = label_valid * max(class_values)
+                pred_test = pred[:int(test_edge_attr.shape[0] / 2),0]
+                pred_test = pred_test * max(class_values)
+                label_test = test_labels
+                label_test = label_test * max(class_values)
             else:
-                pred_valid = pred[:int(valid_edge_attr.shape[0] / 2),0]
-                label_valid = valid_labels
-            mse = F.mse_loss(pred_valid, label_valid)
-            valid_rmse = np.sqrt(mse.item())
-            l1 = F.l1_loss(pred_valid, label_valid)
-            valid_l1 = l1.item()
-            if valid_l1 < best_valid_l1:
-                best_valid_l1 = valid_l1
-                best_valid_l1_epoch = epoch
-                torch.save(model, log_path + 'model_best_valid_l1.pt')
-                torch.save(impute_model, log_path + 'impute_model_best_valid_l1.pt')
-            if valid_rmse < best_valid_rmse:
-                best_valid_rmse = valid_rmse
-                best_valid_rmse_epoch = epoch
-                torch.save(model, log_path + 'model_best_valid_rmse.pt')
-                torch.save(impute_model, log_path + 'impute_model_best_valid_rmse.pt')
-            Valid_rmse.append(valid_rmse)
-            Valid_l1.append(valid_l1)
+                pred_test = pred[:int(test_edge_attr.shape[0] / 2),0]
+                label_test = test_labels
+            mse = F.mse_loss(pred_test, label_test)
+            test_rmse = np.sqrt(mse.item())
+            l1 = F.l1_loss(pred_test, label_test)
+            test_l1 = l1.item()
 
-        x_embd = model(x, all_train_edge_attr, all_train_edge_index)
-        pred = impute_model([x_embd[test_edge_index[0], :], x_embd[test_edge_index[1], :]])
-        if hasattr(args,'ce_loss') and args.ce_loss:
-            pred_test = class_values[pred[:int(test_edge_attr.shape[0] / 2)].max(1)[1]]
-            label_test = class_values[test_labels]
-        elif hasattr(args,'norm_label') and args.norm_label:
-            pred_test = pred[:int(test_edge_attr.shape[0] / 2),0]
-            pred_test = pred_test * max(class_values)
-            label_test = test_labels
-            label_test = label_test * max(class_values)
-        else:
-            pred_test = pred[:int(test_edge_attr.shape[0] / 2),0]
-            label_test = test_labels
-        mse = F.mse_loss(pred_test, label_test)
-        test_rmse = np.sqrt(mse.item())
-        l1 = F.l1_loss(pred_test, label_test)
-        test_l1 = l1.item()
-
-        Train_loss.append(train_loss)
-        Test_rmse.append(test_rmse)
-        Test_l1.append(test_l1)
-        print('epoch: ', epoch)
-        print('loss: ', train_loss)
-        if args.valid > 0.:
-            print('valid rmse: ', valid_rmse)
-            print('valid l1: ', valid_l1)
-        print('test rmse: ', test_rmse)
-        print('test l1: ', test_l1)
+            Train_loss.append(train_loss)
+            Test_rmse.append(test_rmse)
+            Test_l1.append(test_l1)
+            print('epoch: ', epoch)
+            print('loss: ', train_loss)
+            if args.valid > 0.:
+                print('valid rmse: ', valid_rmse)
+                print('valid l1: ', valid_l1)
+            print('test rmse: ', test_rmse)
+            print('test l1: ', test_l1)
 
     pred_train = pred_train.detach().cpu().numpy()
     label_train = label_train.detach().cpu().numpy()
@@ -187,8 +189,9 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
     obj['outputs']['label_test'] = label_test
     pickle.dump(obj, open(log_path + 'result.pkl', "wb"))
 
-    torch.save(model, log_path + 'model.pt')
-    torch.save(impute_model, log_path + 'impute_model.pt')
+    if args.save_model:
+        torch.save(model, log_path + 'model.pt')
+        torch.save(impute_model, log_path + 'impute_model.pt')
 
     # obj = objectview(obj)
     plot_curve(obj['curves'], log_path+'curves.png',keys=None, 
