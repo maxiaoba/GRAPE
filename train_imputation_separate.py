@@ -29,6 +29,7 @@ from plot_utils import plot_result
 
 def train(data, data_test, args, log_path, device):
     # build model
+    print(data.num_node_features)
     model = GNNStack(data.num_node_features, args.node_dim,
                             args.edge_dim, args.edge_mode,
                             args.model_types, args.dropout, args.pre_linear_dim).to(device)
@@ -139,7 +140,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--uci_data', type=str, default='housing') # 'pks', 'cancer', 'housing', 'wine'
     parser.add_argument('--model_types', type=str, default='EGSAGE_EGSAGE_EGSAGE')
-    parser.add_argument('--pre_linear_dim', type=int, default=16)
+    parser.add_argument('--pre_linear_dim', type=int, default=64)
     parser.add_argument('--node_dim', type=int, default=16)
     parser.add_argument('--edge_dim', type=int, default=16)
     parser.add_argument('--edge_mode', type=int, default=1) # 0: use it as weight 1: as input to mlp
@@ -184,8 +185,8 @@ def main():
     #                'naval', 'power', 'protein', 'wine', 'yacht']:
     #    df_np = np.loadtxt('./Data/uci_all/{}/train_edge_mask/data.txt'.format(dataset))
     print("Start loading data...")
-    df_np = pd.read_csv('./Data/RNAseq/rnaseq_normalized.csv', header=None, sep=" ")
-    df_X = pd.DataFrame(df_np)#.iloc[:,0:2000] #extract a subset for experiment
+    df_np = pd.read_csv('./Data/RNAseq/rnaseq_normalized_0408.csv', header=None, sep=" ")
+    df_X = pd.DataFrame(df_np)
     df_y = pd.DataFrame([0] * df_X.shape[0])
 
     train_fraction = 0.7

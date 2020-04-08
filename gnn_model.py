@@ -21,7 +21,7 @@ class GNNStack(torch.nn.Module):
         #self.pre_linear = nn.Linear(node_input_dim, pre_linear_dim)
 
         # convs
-        self.convs = self.build_convs(pre_linear_dim, node_dim, edge_dim, edge_mode, model_types)
+        self.convs = self.build_convs(node_input_dim, node_dim, edge_dim, edge_mode, model_types)
 
         # post node update
         self.node_post_mlp = nn.Sequential(
@@ -81,7 +81,7 @@ class GNNStack(torch.nn.Module):
         return edge_attr
 
     def forward(self, x, edge_attr, edge_index):
-        x = self.pre_linear(x)
+        #x = self.pre_linear(x)
         
         for l,(conv_name,conv) in enumerate(zip(self.model_types,self.convs)):
             # self.check_input(x,edge_attr,edge_index)

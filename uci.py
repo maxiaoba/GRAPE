@@ -42,6 +42,16 @@ def create_node(df):
     node = sample_node + feature_node.tolist()
     return node
 
+def create_node_random(df, initial_node_dim=128):
+    nrow, ncol = df.shape
+    #feature_ind = np.array(range(ncol))
+    #feature_node = np.zeros((ncol,ncol))
+    #feature_node[np.arange(ncol), feature_ind] = 1
+    feature_node = np.random.uniform(0,1,ncol*initial_node_dim)
+    sample_node = [[1]*initial_node_dim for i in range(nrow)]
+    node = sample_node + feature_node.tolist()
+    return node
+
 def get_data(df_X, df_y, train_edge_prob, train_y_prob, seed=0, normalize=True):
     if len(df_y.shape)==1:
         df_y = df_y.to_numpy()
