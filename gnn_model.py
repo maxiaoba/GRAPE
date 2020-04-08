@@ -18,7 +18,7 @@ class GNNStack(torch.nn.Module):
         self.gnn_layer_num = len(model_types)
 
         # pre-linear
-        self.pre_linear = nn.Linear(node_input_dim, pre_linear_dim)
+        #self.pre_linear = nn.Linear(node_input_dim, pre_linear_dim)
 
         # convs
         self.convs = self.build_convs(pre_linear_dim, node_dim, edge_dim, edge_mode, model_types)
