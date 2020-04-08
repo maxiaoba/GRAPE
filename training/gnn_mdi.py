@@ -75,6 +75,9 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
                 .format(
                 train_edge_attr.shape[0],test_edge_attr.shape[0]))
 
+    obj = dict()
+    obj['args'] = args
+    obj['outputs'] = dict()
     for epoch in range(args.epochs):
         model.train()
         impute_model.train()
@@ -157,6 +160,11 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
             test_rmse = np.sqrt(mse.item())
             l1 = F.l1_loss(pred_test, label_test)
             test_l1 = l1.item()
+            if args.save_prediction:
+                if epoch == best_valid_rmse_epoch:
+                    obj['outputs']['best_valid_rmse_pred_test'] = pred_test.detach().cpu().numpy()
+                if epoch == best_valid_l1_epoch:
+                    obj['outputs']['best_valid_l1_pred_test'] = pred_test.detach().cpu().numpy()
 
             Train_loss.append(train_loss)
             Test_rmse.append(test_rmse)
@@ -169,13 +177,11 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
             print('test rmse: ', test_rmse)
             print('test l1: ', test_l1)
 
-    pred_train = pred_train.detach().cpu().numpy()
-    label_train = label_train.detach().cpu().numpy()
-    pred_test = pred_test.detach().cpu().numpy()
-    label_test = label_test.detach().cpu().numpy()
+    # pred_train = pred_train.detach().cpu().numpy()
+    # label_train = label_train.detach().cpu().numpy()
+    # pred_test = pred_test.detach().cpu().numpy()
+    # label_test = label_test.detach().cpu().numpy()
 
-    obj = dict()
-    obj['args'] = args
     obj['curves'] = dict()
     obj['curves']['train_loss'] = Train_loss
     if args.valid > 0.:
@@ -184,11 +190,11 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
     obj['curves']['test_rmse'] = Test_rmse
     obj['curves']['test_l1'] = Test_l1
     obj['lr'] = Lr
-    obj['outputs'] = dict()
-    obj['outputs']['pred_train'] = pred_train
-    obj['outputs']['label_train'] = label_train
-    obj['outputs']['pred_test'] = pred_test
-    obj['outputs']['label_test'] = label_test
+
+    # obj['outputs']['pred_train'] = pred_train
+    # obj['outputs']['label_train'] = label_train
+    # obj['outputs']['pred_test'] = pred_test
+    # obj['outputs']['label_test'] = label_test
     pickle.dump(obj, open(log_path + 'result.pkl', "wb"))
 
     if args.save_model:
@@ -200,11 +206,11 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
                 clip=True, label_min=True, label_end=True)
     plot_curve(obj, log_path+'lr.png',keys=['lr'], 
                 clip=False, label_min=False, label_end=False)
-    plot_sample(obj['outputs'], log_path+'outputs.png', 
-                groups=[['pred_train','label_train'],
-                        ['pred_test','label_test']
-                        ], 
-                num_points=20)
+    # plot_sample(obj['outputs'], log_path+'outputs.png', 
+    #             groups=[['pred_train','label_train'],
+    #                     ['pred_test','label_test']
+    #                     ], 
+    #             num_points=20)
     if args.valid > 0.:
         print("best valid rmse is {:.3g} at epoch {}".format(best_valid_rmse,best_valid_rmse_epoch))
         print("best valid l1 is {:.3g} at epoch {}".format(best_valid_l1,best_valid_l1_epoch))

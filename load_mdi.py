@@ -27,11 +27,42 @@ if not hasattr(args,'ce_loss'):
 for key in args.__dict__.keys():
     print(key,': ',args.__dict__[key])
 
-curves = result.curves
-min_valid_rmse = np.min(curves['valid_rmse'])
-min_valid_rmse_index = np.argmin(curves['valid_rmse'])
-test_rmse = curves['test_rmse'][min_valid_rmse_index]
-print('test rmse is {:.3g} at {}'.format(test_rmse,min_valid_rmse_index))
+if args.domain == 'uci':
+    from uci.uci_data import load_data
+    data = load_data(args)
+elif args.domain == 'mc':
+    from mc.mc_data import load_data
+    data = load_data(args)
+
+test_labels = data.test_labels.clone().detach()
+if hasattr(data,'class_values'):
+    class_values = data.class_values.clone().detach()
+if hasattr(args,'ce_loss') and args.ce_loss:
+    label_test = class_values[test_labels]
+elif hasattr(args,'norm_label') and args.norm_label:
+    label_test = test_labels
+    label_test = label_test * max(class_values)
+else:
+    label_test = test_labels
+
+outputs = result.outputs
+pred_test = torch.tensor(outputs['best_valid_rmse_pred_test'])
+mse = F.mse_loss(pred_test, label_test)
+test_rmse = np.sqrt(mse.item())
+l1 = F.l1_loss(pred_test, label_test)
+test_l1 = l1.item()
+
+mse = F.mse_loss(pred_test, label_test)
+test_rmse = np.sqrt(mse.item())
+l1 = F.l1_loss(pred_test, label_test)
+test_l1 = l1.item()
+print("test rmse: ",test_rmse, " l1: ",test_l1)
+
+# curves = result.curves
+# min_valid_rmse = np.min(curves['valid_rmse'])
+# min_valid_rmse_index = np.argmin(curves['valid_rmse'])
+# test_rmse = curves['test_rmse'][min_valid_rmse_index]
+# print('test rmse is {:.3g} at {}'.format(test_rmse,min_valid_rmse_index))
 
 # if args.domain == 'uci':
 #     from uci.uci_data import load_data
