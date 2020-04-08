@@ -20,6 +20,7 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
         output_dim = 1
     impute_model = MLPNet([args.node_dim, args.node_dim], output_dim,
                             hidden_layer_sizes=impute_hiddens,
+                            hidden_activation=args.activation,
                             dropout=args.dropout).to(device)
     if args.transfer_dir: # this ensures the valid mask is consistant
         load_path = './{}/test/{}/{}/'.format(args.domain,args.data,args.transfer_dir)
@@ -29,7 +30,7 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
 
     trainable_parameters = list(model.parameters()) \
                            + list(impute_model.parameters())
-
+    print("total trainable_parameters: ",len(trainable_parameters))
     # build optimizer
     scheduler, opt = build_optimizer(args, trainable_parameters)
 
@@ -124,15 +125,16 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
                 valid_rmse = np.sqrt(mse.item())
                 l1 = F.l1_loss(pred_valid, label_valid)
                 valid_l1 = l1.item()
-                if args.save_model:
-                    if valid_l1 < best_valid_l1:
-                        best_valid_l1 = valid_l1
-                        best_valid_l1_epoch = epoch
+                if valid_l1 < best_valid_l1:
+                    best_valid_l1 = valid_l1
+                    best_valid_l1_epoch = epoch
+                    if args.save_model:
                         torch.save(model, log_path + 'model_best_valid_l1.pt')
                         torch.save(impute_model, log_path + 'impute_model_best_valid_l1.pt')
-                    if valid_rmse < best_valid_rmse:
-                        best_valid_rmse = valid_rmse
-                        best_valid_rmse_epoch = epoch
+                if valid_rmse < best_valid_rmse:
+                    best_valid_rmse = valid_rmse
+                    best_valid_rmse_epoch = epoch
+                    if args.save_model:
                         torch.save(model, log_path + 'model_best_valid_rmse.pt')
                         torch.save(impute_model, log_path + 'impute_model_best_valid_rmse.pt')
                 Valid_rmse.append(valid_rmse)

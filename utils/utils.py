@@ -12,6 +12,8 @@ def np_random(seed=None):
 def get_activation(activation):
     if activation == 'relu':
         return torch.nn.ReLU()
+    elif activation == 'prelu':
+        return torch.nn.PReLU()
     elif (activation is None) or (activation == 'none'):
         return torch.nn.Identity()
     else:

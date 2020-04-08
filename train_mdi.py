@@ -22,6 +22,7 @@ def main():
     parser.add_argument('--edge_dim', type=int, default=64)
     parser.add_argument('--edge_mode', type=int, default=1)  # 0: use it as weight 1: as input to mlp
     parser.add_argument('--impute_hiddens', type=str, default='64')
+    parser.add_argument('--activation', type=str, default='relu')
     parser.add_argument('--epochs', type=int, default=20000)
     parser.add_argument('--opt', type=str, default='adam')
     parser.add_argument('--opt_scheduler', type=str, default='none')

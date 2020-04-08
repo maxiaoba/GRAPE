@@ -23,7 +23,7 @@ def get_gnn(data, args):
     # build model
     model = GNNStack(data.num_node_features, data.edge_attr_dim,
                         args.node_dim, args.edge_dim, args.edge_mode,
-                        model_types, args.dropout,
+                        model_types, args.dropout, args.activation,
                         post_hiddens,
                         norm_embs)
     return model
@@ -32,26 +32,27 @@ class GNNStack(torch.nn.Module):
     def __init__(self, 
                 node_input_dim, edge_input_dim,
                 node_dim, edge_dim, edge_mode,
-                model_types, dropout,
+                model_types, dropout, activation,
                 node_post_mlp_hiddens,
                 normalize_embs,
                 ):
         super(GNNStack, self).__init__()
         self.dropout = dropout
+        self.activation = activation
         self.model_types = model_types
         self.gnn_layer_num = len(model_types)
 
         # convs
         self.convs = self.build_convs(node_input_dim, edge_input_dim,
                                     node_dim, edge_dim, edge_mode,
-                                    model_types, normalize_embs)
+                                    model_types, normalize_embs, activation)
 
         # post node update
-        self.node_post_mlp = self.build_node_pose_mlp(node_dim, node_post_mlp_hiddens, dropout)
+        self.node_post_mlp = self.build_node_pose_mlp(node_dim, node_post_mlp_hiddens, dropout, activation)
 
-        self.edge_update_mlps = self.build_edge_update_mlps(node_dim, edge_input_dim, edge_dim, self.gnn_layer_num)
+        self.edge_update_mlps = self.build_edge_update_mlps(node_dim, edge_input_dim, edge_dim, self.gnn_layer_num, activation)
 
-    def build_node_pose_mlp(self, node_dim, node_post_mlp_hiddens, dropout):
+    def build_node_pose_mlp(self, node_dim, node_post_mlp_hiddens, dropout, activation):
         if 0 in node_post_mlp_hiddens:
             return get_activation('none')
         else:
@@ -61,7 +62,7 @@ class GNNStack(torch.nn.Module):
                 hidden_dim = layer_size
                 layer = nn.Sequential(
                             nn.Linear(input_dim, hidden_dim),
-                            nn.ReLU(),
+                            get_activation(activation),
                             nn.Dropout(dropout),
                             )
                 layers.append(layer)
@@ -72,18 +73,18 @@ class GNNStack(torch.nn.Module):
 
     def build_convs(self, node_input_dim, edge_input_dim,
                      node_dim, edge_dim, edge_mode,
-                     model_types, normalize_embs):
+                     model_types, normalize_embs, activation):
         convs = nn.ModuleList()
         conv = self.build_conv_model(model_types[0],node_input_dim,node_dim,
-                                    edge_input_dim, edge_mode, normalize_embs[0])
+                                    edge_input_dim, edge_mode, normalize_embs[0], activation)
         convs.append(conv)
         for l in range(1,len(model_types)):
             conv = self.build_conv_model(model_types[l],node_dim, node_dim,
-                                    edge_dim, edge_mode, normalize_embs[l])
+                                    edge_dim, edge_mode, normalize_embs[l], activation)
             convs.append(conv)
         return convs
 
-    def build_conv_model(self, model_type, node_in_dim, node_out_dim, edge_dim, edge_mode, normalize_emb):
+    def build_conv_model(self, model_type, node_in_dim, node_out_dim, edge_dim, edge_mode, normalize_emb, activation):
         #print(model_type)
         if model_type == 'GCN':
             return pyg_nn.GCNConv(node_in_dim,node_out_dim)
@@ -94,19 +95,19 @@ class GNNStack(torch.nn.Module):
         elif model_type == 'EGCN':
             return EGCNConv(node_in_dim,node_out_dim,edge_dim,edge_mode)
         elif model_type == 'EGSAGE':
-            return EGraphSage(node_in_dim,node_out_dim,edge_dim,edge_mode,normalize_emb)
+            return EGraphSage(node_in_dim,node_out_dim,edge_dim,activation,edge_mode,normalize_emb)
 
-    def build_edge_update_mlps(self, node_dim, edge_input_dim, edge_dim, gnn_layer_num):
+    def build_edge_update_mlps(self, node_dim, edge_input_dim, edge_dim, gnn_layer_num, activation):
         edge_update_mlps = nn.ModuleList()
         edge_update_mlp = nn.Sequential(
                 nn.Linear(node_dim+node_dim+edge_input_dim,edge_dim),
-                nn.ReLU(),
+                get_activation(activation),
                 )
         edge_update_mlps.append(edge_update_mlp)
         for l in range(1,gnn_layer_num):
             edge_update_mlp = nn.Sequential(
                 nn.Linear(node_dim+node_dim+edge_dim,edge_dim),
-                nn.ReLU(),
+                get_activation(activation),
                 )
             edge_update_mlps.append(edge_update_mlp)
         return edge_update_mlps
@@ -115,8 +116,6 @@ class GNNStack(torch.nn.Module):
         x_i = x[edge_index[0],:]
         x_j = x[edge_index[1],:]
         edge_attr = mlp(torch.cat((x_i,x_j,edge_attr),dim=-1))
-        edge_attr = F.relu(edge_attr)
-        edge_attr = F.dropout(edge_attr, p=self.dropout, training=self.training)
         return edge_attr
 
     def forward(self, x, edge_attr, edge_index):
@@ -126,7 +125,6 @@ class GNNStack(torch.nn.Module):
                 x = conv(x, edge_attr, edge_index)
             else:
                 x = conv(x, edge_index)
-            x = F.dropout(x, p=self.dropout, training=self.training)
             edge_attr = self.update_edge_attr(x, edge_attr, edge_index, self.edge_update_mlps[l])
             #print(edge_attr.shape)
         x = self.node_post_mlp(x)
