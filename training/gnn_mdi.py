@@ -14,13 +14,17 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
         impute_hiddens = []
     else:
         impute_hiddens = list(map(int,args.impute_hiddens.split('_')))
+    if args.concat_states:
+        input_dim = args.node_dim * len(model.convs) * 2
+    else:
+        input_dim = args.node_dim * 2
     if hasattr(args,'ce_loss') and args.ce_loss:
         output_dim = len(data.class_values)
     else:
         output_dim = 1
-    impute_model = MLPNet([args.node_dim, args.node_dim], output_dim,
+    impute_model = MLPNet(input_dim, output_dim,
                             hidden_layer_sizes=impute_hiddens,
-                            hidden_activation=args.activation,
+                            hidden_activation=args.impute_activation,
                             dropout=args.dropout).to(device)
     if args.transfer_dir: # this ensures the valid mask is consistant
         load_path = './{}/test/{}/{}/'.format(args.domain,args.data,args.transfer_dir)

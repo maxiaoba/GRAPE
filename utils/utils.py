@@ -14,6 +14,8 @@ def get_activation(activation):
         return torch.nn.ReLU()
     elif activation == 'prelu':
         return torch.nn.PReLU()
+    elif activation == 'tanh':
+        return torch.nn.Tanh()
     elif (activation is None) or (activation == 'none'):
         return torch.nn.Identity()
     else:

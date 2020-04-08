@@ -13,8 +13,6 @@ class MLPNet(torch.nn.Module):
                 dropout=0.):
         super(MLPNet, self).__init__()
 
-        self.hidden_activation = get_activation(hidden_activation)
-        self.output_activation = get_activation(output_activation)
         layers = nn.ModuleList()
 
         input_dim = np.sum(input_dims)
@@ -23,7 +21,7 @@ class MLPNet(torch.nn.Module):
         	hidden_dim = layer_size
         	layer = nn.Sequential(
         				nn.Linear(input_dim, hidden_dim),
-        				self.hidden_activation,
+        				get_activation(hidden_activation),
         				nn.Dropout(dropout),
         				)
         	layers.append(layer)
@@ -31,7 +29,7 @@ class MLPNet(torch.nn.Module):
 
         layer = nn.Sequential(
         				nn.Linear(input_dim, output_dim),
-        				self.output_activation,
+        				get_activation(output_activation),
         				)
        	layers.append(layer)
        	self.layers = layers

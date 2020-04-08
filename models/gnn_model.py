@@ -23,8 +23,8 @@ def get_gnn(data, args):
     # build model
     model = GNNStack(data.num_node_features, data.edge_attr_dim,
                         args.node_dim, args.edge_dim, args.edge_mode,
-                        model_types, args.dropout, args.activation,
-                        post_hiddens,
+                        model_types, args.dropout, args.gnn_activation,
+                        args.concat_states, post_hiddens,
                         norm_embs)
     return model
 
@@ -33,12 +33,13 @@ class GNNStack(torch.nn.Module):
                 node_input_dim, edge_input_dim,
                 node_dim, edge_dim, edge_mode,
                 model_types, dropout, activation,
-                node_post_mlp_hiddens,
+                concat_states, node_post_mlp_hiddens,
                 normalize_embs,
                 ):
         super(GNNStack, self).__init__()
         self.dropout = dropout
         self.activation = activation
+        self.concat_states = concat_states
         self.model_types = model_types
         self.gnn_layer_num = len(model_types)
 
@@ -48,18 +49,19 @@ class GNNStack(torch.nn.Module):
                                     model_types, normalize_embs, activation)
 
         # post node update
-        self.node_post_mlp = self.build_node_pose_mlp(node_dim, node_post_mlp_hiddens, dropout, activation)
+        if concat_states:
+            self.node_post_mlp = self.build_node_post_mlp(int(node_dim*len(model_types)), int(node_dim*len(model_types)), node_post_mlp_hiddens, dropout, activation)
+        else:
+            self.node_post_mlp = self.build_node_post_mlp(node_dim, node_dim, node_post_mlp_hiddens, dropout, activation)
 
         self.edge_update_mlps = self.build_edge_update_mlps(node_dim, edge_input_dim, edge_dim, self.gnn_layer_num, activation)
 
-    def build_node_pose_mlp(self, node_dim, node_post_mlp_hiddens, dropout, activation):
-        if 0 in node_post_mlp_hiddens:
+    def build_node_post_mlp(self, input_dim, output_dim, hidden_dims, dropout, activation):
+        if 0 in hidden_dims:
             return get_activation('none')
         else:
             layers = []
-            input_dim = np.sum(node_dim)
-            for layer_size in node_post_mlp_hiddens:
-                hidden_dim = layer_size
+            for hidden_dim in hidden_dims:
                 layer = nn.Sequential(
                             nn.Linear(input_dim, hidden_dim),
                             get_activation(activation),
@@ -67,7 +69,7 @@ class GNNStack(torch.nn.Module):
                             )
                 layers.append(layer)
                 input_dim = hidden_dim
-            layer = nn.Linear(input_dim, node_dim)
+            layer = nn.Linear(input_dim, output_dim)
             layers.append(layer)
             return nn.Sequential(*layers)
 
@@ -119,14 +121,20 @@ class GNNStack(torch.nn.Module):
         return edge_attr
 
     def forward(self, x, edge_attr, edge_index):
+        if self.concat_states:
+            concat_x = []
         for l,(conv_name,conv) in enumerate(zip(self.model_types,self.convs)):
             # self.check_input(x,edge_attr,edge_index)
             if conv_name == 'EGCN' or conv_name == 'EGSAGE':
                 x = conv(x, edge_attr, edge_index)
             else:
                 x = conv(x, edge_index)
+            if self.concat_states:
+                concat_x.append(x)
             edge_attr = self.update_edge_attr(x, edge_attr, edge_index, self.edge_update_mlps[l])
             #print(edge_attr.shape)
+        if self.concat_states:
+            x = torch.cat(concat_x, 1)
         x = self.node_post_mlp(x)
         # self.check_input(x,edge_attr,edge_index)
         return x
