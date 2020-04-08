@@ -58,11 +58,11 @@ l1 = F.l1_loss(pred_test, label_test)
 test_l1 = l1.item()
 print("test rmse: ",test_rmse, " l1: ",test_l1)
 
-# curves = result.curves
-# min_valid_rmse = np.min(curves['valid_rmse'])
-# min_valid_rmse_index = np.argmin(curves['valid_rmse'])
-# test_rmse = curves['test_rmse'][min_valid_rmse_index]
-# print('test rmse is {:.3g} at {}'.format(test_rmse,min_valid_rmse_index))
+curves = result.curves
+min_valid_rmse = np.min(curves['valid_rmse'])
+min_valid_rmse_index = np.argmin(curves['valid_rmse'])
+test_rmse = curves['test_rmse'][min_valid_rmse_index]
+print('test rmse is {:.3g} at {}'.format(test_rmse,min_valid_rmse_index))
 
 # if args.domain == 'uci':
 #     from uci.uci_data import load_data
