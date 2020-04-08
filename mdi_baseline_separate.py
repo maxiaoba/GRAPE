@@ -33,7 +33,7 @@ def train(data, method):
     X, X_incomplete = construct_missing_X(train_edge_mask, data.df_X)
 
     X_filled = baseline_inpute(data, method)
-    mae = get_impute_mae(X,X_filled,train_edge_mask.reshape(X.shape))
+    mae = get_impute_mae(X,X_filled, train_edge_mask.reshape(X.shape))
 
     return mae
 
@@ -50,8 +50,8 @@ def main():
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
 
-    df_np = pd.read_csv('./Data/RNAseq/rnaseq_normalized.csv', header=None, sep=" ")
-    df_X = pd.DataFrame(df_np).iloc[:,0:300] #extract a subset for experiment
+    df_np = pd.read_csv('./Data/RNAseq/rnaseq_normalized_0408.csv', header=None, sep=" ")
+    df_X = pd.DataFrame(df_np) #extract a subset for experiment
     df_y = pd.DataFrame([0] * df_X.shape[0])
 
     train_fraction = 0.7
@@ -61,8 +61,9 @@ def main():
     df_y_train = df_y[train_index]
     df_y_test = df_y[~train_index]
 
-    data = get_data(df_X_test, df_y_train, args.train_edge, args.train_y, args.seed, normalize=False)
-    for method in ['mean', 'knn', 'svd', 'mice']:
+    data = get_data(df_X_test, df_y_test, args.train_edge, args.train_y, args.seed, normalize=False)
+
+    for method in ['mean','svd','knn']: #'mice'
         log_path = './Data/mdi_results/{}_{}/rnaseq/{}/'.format(method, args.comment, args.seed)
         if not os.path.isdir(log_path):
             os.makedirs(log_path)
@@ -70,7 +71,6 @@ def main():
 
         with open("{}results.txt".format(log_path), "w") as text_file:
             text_file.write('{}'.format(mae))
-
 
 if __name__ == '__main__':
     main()
