@@ -30,7 +30,7 @@ def train(data, args, log_path, device):
     # build model
     model = GNNStack(data.num_node_features, args.node_dim,
                             args.edge_dim, args.edge_mode,
-                            args.model_types, args.dropout).to(device)
+                            args.model_types, args.dropout, args.pre_linear_dim).to(device)
     impute_model = MLPNet([args.node_dim, args.node_dim], 1, 
                             hidden_layer_sizes=args.impute_hiddens,
                             dropout=args.dropout).to(device)
@@ -94,7 +94,7 @@ def train(data, args, log_path, device):
         Train_loss.append(train_loss)
         Valid_mse.append(test_mse)
         Valid_l1.append(test_l1)
-        if epoch % 1000 == 0:
+        if epoch % 10 == 0:
             print('epoch: {}, train mse: {}, test mse: {}, test l1: {}, path: {}'.format(epoch, train_loss, test_mse, test_l1, log_path))
         # print('epoch: ',epoch)
         # print('loss: ',train_loss)
@@ -128,6 +128,7 @@ def main():
     parser.add_argument('--uci_data', type=str, default='housing') # 'pks', 'cancer', 'housing', 'wine'
     parser.add_argument('--model_types', type=str, default='EGSAGE_EGSAGE_EGSAGE')
     parser.add_argument('--node_dim', type=int, default=64)
+    parser.add_argument('--pre_linear_dim', type=int, default=64)
     parser.add_argument('--edge_dim', type=int, default=64)
     parser.add_argument('--edge_mode', type=int, default=1) # 0: use it as weight 1: as input to mlp
     parser.add_argument('--impute_hiddens', type=str, default='64')
@@ -168,7 +169,7 @@ def main():
 
     ## new
     for dataset in ['concrete', 'energy', 'housing', 'kin8nm',
-                    'naval', 'power', 'protein', 'wine', 'yacht']:
+                   'naval', 'power', 'protein', 'wine', 'yacht']:
         df_np = np.loadtxt('./Data/uci_all/{}/data/data.txt'.format(dataset))
         df_y = pd.DataFrame(df_np[:, -1:])
         df_X = pd.DataFrame(df_np[:, :-1])

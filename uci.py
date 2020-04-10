@@ -42,7 +42,7 @@ def create_node(df):
     node = sample_node + feature_node.tolist()
     return node
 
-def create_node_random(df, initial_node_dim=128):
+def create_node_random(df, initial_node_dim=32):
     nrow, ncol = df.shape
     #feature_ind = np.array(range(ncol))
     #feature_node = np.zeros((ncol,ncol))
@@ -67,14 +67,14 @@ def get_data(df_X, df_y, train_edge_prob, train_y_prob, seed=0, normalize=True):
     
     print("Creating edges...")
     edge_start, edge_end = create_edge(df_X)
-    edge_index = torch.tensor([edge_start, edge_end], dtype=int)
+    edge_index = torch.tensor([edge_start, edge_end], dtype=int, requires_grad = False)
     print("Creating edge attributes...")
-    edge_attr = torch.tensor(create_edge_attr(df_X), dtype=torch.float)
+    edge_attr = torch.tensor(create_edge_attr(df_X), dtype=torch.float, requires_grad = False)
     print("Creating nodes...")
     #node_init = create_node(df_X)
     node_init = create_node_random(df_X)
-    x = torch.tensor(node_init, dtype=torch.float)
-    y = torch.tensor(df_y, dtype=torch.float)
+    x = torch.tensor(node_init, dtype=torch.float, requires_grad = False)
+    y = torch.tensor(df_y, dtype=torch.float, requires_grad = False)
     
     #set seed to fix known/unknwon edges
     torch.manual_seed(seed)
