@@ -8,10 +8,10 @@ import matplotlib.pyplot as plt
 import torch.nn.functional as F
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--domain', type=str, default='uci')
-parser.add_argument('--data', type=str, default='housing')
+parser.add_argument('--domain', type=str, default='mc')
+parser.add_argument('--data', type=str, default='douban')
 parser.add_argument('--log_dir', type=str, default='0')
-parser.add_argument('--log_extra', type=str, default='')
+parser.add_argument('--log_extra', type=str, default='_best_valid_rmse')
 load_args = parser.parse_args()
 
 load_path = './{}/test/{}/{}/'.format(load_args.domain,load_args.data,load_args.log_dir)
