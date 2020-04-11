@@ -12,16 +12,25 @@ import math
 from utils.utils import get_known_mask, mask_edge, one_hot, soft_one_hot
 from mc.preprocessing import *
 
-def create_node(df):
-    nrow, ncol = df.shape
-    feature_ind = np.array(range(ncol))
-    feature_node = np.zeros((ncol,ncol))
-    feature_node[np.arange(ncol), feature_ind] = 1
-    sample_node = [[1]*ncol for i in range(nrow)]
-    node = sample_node + feature_node.tolist()
+def create_node(df, mode=0):
+    if mode == 0: # onehot feature node, all 1 sample node
+        nrow, ncol = df.shape
+        feature_ind = np.array(range(ncol))
+        feature_node = np.zeros((ncol,ncol))
+        feature_node[np.arange(ncol), feature_ind] = 1
+        sample_node = [[1]*ncol for i in range(nrow)]
+        node = sample_node + feature_node.tolist()
+    elif mode == 1: # onehot sample and feature node
+        nrow, ncol = df.shape
+        feature_ind = np.array(range(ncol))
+        feature_node = np.zeros((ncol,ncol+1))
+        feature_node[np.arange(ncol), feature_ind+1] = 1
+        sample_node = np.zeros((ncol,ncol+1))
+        sample_node[:,0] = 1
+        node = sample_node.tolist() + feature_node.tolist()
     return node
 
-def get_data(u_features, v_features, adj_train,
+def get_data(u_features, v_features, node_mode, adj_train,
     train_labels, train_u_indices, train_v_indices,
     val_labels, val_u_indices, val_v_indices, 
     test_labels, test_u_indices, test_v_indices, 
@@ -40,12 +49,9 @@ def get_data(u_features, v_features, adj_train,
 
     n_row, n_col = adj_train.shape
     if (u_features is None) or (v_features is None):
-        x = torch.tensor(create_node(adj_train), dtype=torch.float)
+        x = torch.tensor(create_node(adj_train, node_mode), dtype=torch.float)
     else:
         print("using given feature")
-        # x = torch.cat((torch.tensor(u_features,dtype=torch.float),
-        #                 torch.tensor(v_features,dtype=torch.float)),
-        #                 dim=0)
         x = torch.zeros((u_features.shape[0]+v_features.shape[0],
                         np.maximum(u_features.shape[1],v_features.shape[1]))
                         ,dtype=torch.float)
@@ -199,7 +205,7 @@ def load_data(args):
     '''
     if not hasattr(args,'soft_one_hot_edge'):
         args.soft_one_hot_edge = False
-    data = get_data(u_features, v_features, adj_train,
+    data = get_data(u_features, v_features, args.node_mode, adj_train,
         train_labels, train_u_indices, train_v_indices, \
         val_labels, val_u_indices, val_v_indices, test_labels, \
         test_u_indices, test_v_indices, class_values,

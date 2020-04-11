@@ -21,7 +21,8 @@ def main():
     parser.add_argument('--norm_embs', type=str, default=None,) # default to be all true
     parser.add_argument('--node_dim', type=int, default=64)
     parser.add_argument('--edge_dim', type=int, default=64)
-    parser.add_argument('--edge_mode', type=int, default=1)  # 0: use it as weight 1: as input to mlp
+    parser.add_argument('--edge_mode', type=int, default=1)  # 0: use it as weight; 1: as input to mlp
+    parser.add_argument('--node_mode', type=int, default=0)  # 0: feature onehot, sample all 1; 1: all onehot
     parser.add_argument('--gnn_activation', type=str, default='relu')
     parser.add_argument('--impute_hiddens', type=str, default='64')
     parser.add_argument('--impute_activation', type=str, default='relu')

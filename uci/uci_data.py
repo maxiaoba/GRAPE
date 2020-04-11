@@ -11,6 +11,24 @@ import pdb
 
 from utils.utils import get_known_mask, mask_edge
 
+def create_node(df, mode=0):
+    if mode == 0: # onehot feature node, all 1 sample node
+        nrow, ncol = df.shape
+        feature_ind = np.array(range(ncol))
+        feature_node = np.zeros((ncol,ncol))
+        feature_node[np.arange(ncol), feature_ind] = 1
+        sample_node = [[1]*ncol for i in range(nrow)]
+        node = sample_node + feature_node.tolist()
+    elif mode == 1: # onehot sample and feature node
+        nrow, ncol = df.shape
+        feature_ind = np.array(range(ncol))
+        feature_node = np.zeros((ncol,ncol+1))
+        feature_node[np.arange(ncol), feature_ind+1] = 1
+        sample_node = np.zeros((nrow,ncol+1))
+        sample_node[:,0] = 1
+        node = sample_node.tolist() + feature_node.tolist()
+    return node
+
 def create_edge(df):
     n_row, n_col = df.shape
     edge_start = []
@@ -31,16 +49,7 @@ def create_edge_attr(df):
     edge_attr = edge_attr + edge_attr
     return edge_attr
 
-def create_node(df):
-    nrow, ncol = df.shape
-    feature_ind = np.array(range(ncol))
-    feature_node = np.zeros((ncol,ncol))
-    feature_node[np.arange(ncol), feature_ind] = 1
-    sample_node = [[1]*ncol for i in range(nrow)]
-    node = sample_node + feature_node.tolist()
-    return node
-
-def get_data(df_X, df_y, train_edge_prob, train_y_prob, seed=0, normalize=True):
+def get_data(df_X, df_y, node_mode, train_edge_prob, train_y_prob, seed=0, normalize=True):
     if len(df_y.shape)==1:
         df_y = df_y.to_numpy()
     elif len(df_y.shape)==2:
@@ -54,7 +63,7 @@ def get_data(df_X, df_y, train_edge_prob, train_y_prob, seed=0, normalize=True):
     edge_start, edge_end = create_edge(df_X)
     edge_index = torch.tensor([edge_start, edge_end], dtype=int)
     edge_attr = torch.tensor(create_edge_attr(df_X), dtype=torch.float)
-    node_init = create_node(df_X) 
+    node_init = create_node(df_X, node_mode) 
     x = torch.tensor(node_init, dtype=torch.float)
     y = torch.tensor(df_y, dtype=torch.float)
     
@@ -93,7 +102,7 @@ def load_data(args):
     df_np = np.loadtxt(uci_path+'/raw_data/{}/data/data.txt'.format(args.data))
     df_y = pd.DataFrame(df_np[:, -1:])
     df_X = pd.DataFrame(df_np[:, :-1])
-    data = get_data(df_X, df_y, args.train_edge, args.train_y, args.seed)
+    data = get_data(df_X, df_y, args.node_mode, args.train_edge, args.train_y, args.seed)
     return data
 
 

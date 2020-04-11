@@ -45,13 +45,13 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
     Lr = []
 
     x = data.x.clone().detach().to(device)
+    print(x)
     all_train_edge_index = data.train_edge_index.clone().detach().to(device)
     all_train_edge_attr = data.train_edge_attr.clone().detach().to(device)
     all_train_labels = data.train_labels.clone().detach().to(device)
     test_edge_index = data.test_edge_index.clone().detach().to(device)
     test_edge_attr = data.test_edge_attr.clone().detach().to(device)
     test_labels = data.test_labels.clone().detach().to(device)
-    print(all_train_edge_attr.shape,test_edge_attr.shape)
     if hasattr(data,'class_values'):
         class_values = data.class_values.clone().detach().to(device)
     if args.valid > 0.:
