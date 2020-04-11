@@ -1,0 +1,1 @@
+python train_mdi.py --epochs 5000 --log_dir 28 --model_types EGSAGE_EGSAGE_EGSAGE_EGSAGE --norm_embs 0_0_0_0 --edge_dim 32 --node_dim 32 --impute_hiddens 128 --post_hiddens 0 --valid 0.1 mc --testing --norm_label --data flixster --one_hot_edge
