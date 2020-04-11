@@ -17,6 +17,9 @@ class EGraphSage(MessagePassing):
                  normalize_emb=True):
         super(EGraphSage, self).__init__(aggr='mean')
 
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.edge_channels = edge_channels
         self.edge_mode = edge_mode
 
         if edge_mode == 0:
@@ -32,6 +35,9 @@ class EGraphSage(MessagePassing):
                     get_activation(activation),
                     nn.Linear(out_channels, out_channels),
                     )
+        elif edge_mode == 4:
+            self.message_lin = nn.Linear(in_channels, int(out_channels*edge_channels))
+
         self.agg_lin = nn.Linear(in_channels+out_channels, out_channels)
 
         self.message_activation = get_activation(activation)
@@ -56,7 +62,13 @@ class EGraphSage(MessagePassing):
             m_j = self.message_activation(self.message_lin(m_j))
         elif self.edge_mode == 2 or self.edge_mode == 3:
             m_j = torch.cat((x_i,x_j, edge_attr),dim=-1)
-            m_j = self.message_activation(self.message_lin(m_j))  
+            m_j = self.message_activation(self.message_lin(m_j))
+        elif self.edge_mode == 4:
+            E = x_j.shape[0]
+            w = self.message_lin(x_j)
+            w = self.message_activation(w)
+            w = torch.reshape(w, (E,self.out_channels,self.edge_channels))
+            m_j = torch.bmm(w, edge_attr.unsqueeze(-1)).squeeze(-1)
         return m_j
 
     def update(self, aggr_out, x):
