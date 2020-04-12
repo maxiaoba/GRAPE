@@ -180,10 +180,10 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
             print('test rmse: ', test_rmse)
             print('test l1: ', test_l1)
 
-    # pred_train = pred_train.detach().cpu().numpy()
-    # label_train = label_train.detach().cpu().numpy()
-    # pred_test = pred_test.detach().cpu().numpy()
-    # label_test = label_test.detach().cpu().numpy()
+    pred_train = pred_train.detach().cpu().numpy()
+    label_train = label_train.detach().cpu().numpy()
+    pred_test = pred_test.detach().cpu().numpy()
+    label_test = label_test.detach().cpu().numpy()
 
     obj['curves'] = dict()
     obj['curves']['train_loss'] = Train_loss
@@ -194,10 +194,10 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
     obj['curves']['test_l1'] = Test_l1
     obj['lr'] = Lr
 
-    # obj['outputs']['pred_train'] = pred_train
-    # obj['outputs']['label_train'] = label_train
-    # obj['outputs']['pred_test'] = pred_test
-    # obj['outputs']['label_test'] = label_test
+    obj['outputs']['final_pred_train'] = pred_train
+    obj['outputs']['label_train'] = label_train
+    obj['outputs']['final_pred_test'] = pred_test
+    obj['outputs']['label_test'] = label_test
     pickle.dump(obj, open(log_path + 'result.pkl', "wb"))
 
     if args.save_model:
@@ -209,11 +209,17 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
                 clip=True, label_min=True, label_end=True)
     plot_curve(obj, log_path+'lr.png',keys=['lr'], 
                 clip=False, label_min=False, label_end=False)
-    # plot_sample(obj['outputs'], log_path+'outputs.png', 
-    #             groups=[['pred_train','label_train'],
-    #                     ['pred_test','label_test']
-    #                     ], 
-    #             num_points=20)
+    plot_sample(obj['outputs'], log_path+'outputs.png', 
+                groups=[['final_pred_train','label_train'],
+                        ['final_pred_test','label_test']
+                        ], 
+                num_points=20)
+    if args.save_prediction and args.valid > 0.:
+        plot_sample(obj['outputs'], log_path+'outputs_best_valid.png', 
+                    groups=[['best_valid_rmse_pred_test','label_test'],
+                            ['best_valid_l1_pred_test','label_test']
+                            ], 
+                    num_points=20)
     if args.valid > 0.:
         print("best valid rmse is {:.3g} at epoch {}".format(best_valid_rmse,best_valid_rmse_epoch))
         print("best valid l1 is {:.3g} at epoch {}".format(best_valid_l1,best_valid_l1_epoch))

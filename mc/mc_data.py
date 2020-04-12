@@ -12,7 +12,7 @@ import math
 from utils.utils import get_known_mask, mask_edge, one_hot, soft_one_hot
 from mc.preprocessing import *
 
-def create_node(df, mode=0):
+def create_node(df, mode):
     if mode == 0: # onehot feature node, all 1 sample node
         nrow, ncol = df.shape
         feature_ind = np.array(range(ncol))

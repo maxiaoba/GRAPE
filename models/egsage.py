@@ -36,7 +36,9 @@ class EGraphSage(MessagePassing):
                     nn.Linear(out_channels, out_channels),
                     )
         elif edge_mode == 4:
-            self.message_lin = nn.Linear(in_channels, int(out_channels*edge_channels))
+            self.message_lin = nn.Linear(in_channels, out_channels*edge_channels)
+        elif edge_mode == 5:
+            self.message_lin = nn.Linear(2*in_channels, out_channels*edge_channels)
 
         self.agg_lin = nn.Linear(in_channels+out_channels, out_channels)
 
@@ -66,6 +68,12 @@ class EGraphSage(MessagePassing):
         elif self.edge_mode == 4:
             E = x_j.shape[0]
             w = self.message_lin(x_j)
+            w = self.message_activation(w)
+            w = torch.reshape(w, (E,self.out_channels,self.edge_channels))
+            m_j = torch.bmm(w, edge_attr.unsqueeze(-1)).squeeze(-1)
+        elif self.edge_mode == 5:
+            E = x_j.shape[0]
+            w = self.message_lin(torch.cat((x_i,x_j),dim=-1))
             w = self.message_activation(w)
             w = torch.reshape(w, (E,self.out_channels,self.edge_channels))
             m_j = torch.bmm(w, edge_attr.unsqueeze(-1)).squeeze(-1)
