@@ -1,0 +1,1 @@
+python train_mdi.py --epochs 5000 --log_dir 26concattanhdrop05 --gnn_activation tanh --dropout 0.5 --concat_states --model_types EGSAGE_EGSAGE_EGSAGE_EGSAGE --node_dim 32 --edge_dim 32 --impute_hiddens 128 --post_hiddens 0 --norm_embs 0_0_0_0 --valid 0.1 mc --testing --norm_label --data yahoo_music --one_hot_edge
