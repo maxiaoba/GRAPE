@@ -21,11 +21,18 @@ def get_gnn(data, args):
         post_hiddens = list(map(int,args.post_hiddens.split('_')))
     print(model_types, norm_embs, post_hiddens)
     # build model
-    model = GNNStack(data.num_node_features, data.edge_attr_dim,
-                        args.node_dim, args.edge_dim, args.edge_mode,
-                        model_types, args.dropout, args.gnn_activation,
-                        args.concat_states, post_hiddens,
-                        norm_embs)
+    if args.dual_gnn:
+        model = GNNDualStack(data.user_num, data.num_node_features, data.edge_attr_dim,
+                            args.node_dim, args.edge_dim, args.edge_mode,
+                            model_types, args.dropout, args.gnn_activation,
+                            args.concat_states,
+                            norm_embs)
+    else:
+        model = GNNStack(data.num_node_features, data.edge_attr_dim,
+                            args.node_dim, args.edge_dim, args.edge_mode,
+                            model_types, args.dropout, args.gnn_activation,
+                            args.concat_states, post_hiddens,
+                            norm_embs)
     return model
 
 class GNNStack(torch.nn.Module):
@@ -124,7 +131,7 @@ class GNNStack(torch.nn.Module):
         if self.concat_states:
             concat_x = []
         for l,(conv_name,conv) in enumerate(zip(self.model_types,self.convs)):
-            # self.check_input(x,edge_attr,edge_index)
+            self.check_input(x,edge_attr,edge_index)
             if conv_name == 'EGCN' or conv_name == 'EGSAGE':
                 x = conv(x, edge_attr, edge_index)
             else:
@@ -171,4 +178,63 @@ class GNNStack(torch.nn.Module):
             plt.title('x_j')
         plt.legend()
         plt.show()
+
+class GNNDualStack(GNNStack):
+    def __init__(self, user_num,
+                node_input_dim, edge_input_dim,
+                node_dim, edge_dim, edge_mode,
+                model_types, dropout, activation,
+                concat_states,
+                normalize_embs,
+                ):
+        super(GNNStack, self).__init__()
+        self.user_num = user_num
+
+        self.dropout = dropout
+        self.activation = activation
+        self.concat_states = concat_states
+        self.model_types = model_types
+        self.gnn_layer_num = len(model_types)
+
+        # convs
+        self.convs1 = self.build_convs(node_input_dim, edge_input_dim,
+                                    node_dim, edge_dim, edge_mode,
+                                    model_types, normalize_embs, activation)
+        self.convs2 = self.build_convs(node_input_dim, edge_input_dim,
+                                    node_dim, edge_dim, edge_mode,
+                                    model_types, normalize_embs, activation)
+
+        self.edge_update_mlps1 = self.build_edge_update_mlps(node_dim, edge_input_dim, edge_dim, self.gnn_layer_num, activation)
+        self.edge_update_mlps2 = self.build_edge_update_mlps(node_dim, edge_input_dim, edge_dim, self.gnn_layer_num, activation)
+
+    def forward(self, x, edge_attr, edge_index):
+        edge_num = int(edge_attr.shape[0]/2)
+        edge_attr1 = edge_attr[:edge_num]
+        edge_index1 = edge_index[:,:edge_num]
+        edge_attr2 = edge_attr[edge_num:]
+        edge_index2 = edge_index[:,edge_num:]
+        assert torch.all(torch.eq(edge_attr1,edge_attr2))
+        if self.concat_states:
+            concat_x = []
+        for l,(conv_name,conv1,conv2) in enumerate(zip(self.model_types,self.convs1,self.convs2)):
+            self.check_input(x,edge_attr,edge_index)
+            if conv_name == 'EGCN' or conv_name == 'EGSAGE':
+                x0 = x.copy()
+                x1 = conv1(x, edge_attr1, edge_index1)
+                assert torch.all(torch.eq(x0,x))
+                x2 = conv2(x, edge_attr2, edge_index2)
+            else:
+                x1 = conv1(x, edge_index1)
+                x2 = conv2(x, edge_index2)
+            x = torch.cat((x1[:self.user_num],x2[self.user_num:]),0)
+            if self.concat_states:
+                concat_x.append(x)
+            edge_attr1 = self.update_edge_attr(x, edge_attr1, edge_index1, self.edge_update_mlps1[l])
+            edge_attr2 = self.update_edge_attr(x, edge_attr2, edge_index2, self.edge_update_mlps2[l])
+            #print(edge_attr.shape)
+        if self.concat_states:
+            x = torch.cat(concat_x, 1)
+        # self.check_input(x,edge_attr,edge_index)
+        return x
+
 

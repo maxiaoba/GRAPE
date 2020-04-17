@@ -169,6 +169,9 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
                 if epoch == best_valid_l1_epoch:
                     obj['outputs']['best_valid_l1_pred_test'] = pred_test.detach().cpu().numpy()
 
+            if args.mode == 'debug':
+                torch.save(model, log_path + 'model_{}.pt'.format(epoch))
+                torch.save(impute_model, log_path + 'impute_model_{}.pt'.format(epoch))
             Train_loss.append(train_loss)
             Test_rmse.append(test_rmse)
             Test_l1.append(test_l1)

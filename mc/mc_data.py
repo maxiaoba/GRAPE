@@ -25,7 +25,7 @@ def create_node(df, mode):
         feature_ind = np.array(range(ncol))
         feature_node = np.zeros((ncol,ncol+1))
         feature_node[np.arange(ncol), feature_ind+1] = 1
-        sample_node = np.zeros((ncol,ncol+1))
+        sample_node = np.zeros((nrow,ncol+1))
         sample_node[:,0] = 1
         node = sample_node.tolist() + feature_node.tolist()
     return node
@@ -110,6 +110,7 @@ def get_data(u_features, v_features, node_mode, adj_train,
             val_edge_index=val_edge_index,val_edge_attr=val_edge_attr,val_labels=val_labels,
             test_edge_index=test_edge_index,test_edge_attr=test_edge_attr,test_labels=test_labels,
             edge_attr_dim=train_edge_attr.shape[-1], class_values=torch.FloatTensor(class_values),
+            user_num=adj_train.shape[0]
             )
     return data
 

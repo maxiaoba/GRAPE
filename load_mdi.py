@@ -29,15 +29,26 @@ if not hasattr(args,'node_mode'):
 for key in args.__dict__.keys():
     print(key,': ',args.__dict__[key])
 
-### 
+### test rmse from saved curve
 
-# curves = result.curves
-# min_valid_rmse = np.min(curves['valid_rmse'])
-# min_valid_rmse_index = np.argmin(curves['valid_rmse'])
-# test_rmse = curves['test_rmse'][min_valid_rmse_index]
-# print('test rmse is {:.3g} at {}'.format(test_rmse,min_valid_rmse_index))
+curves = result.curves
+min_valid_rmse = np.min(curves['valid_rmse'])
+min_valid_rmse_index = np.argmin(curves['valid_rmse'])
+test_rmse = curves['test_rmse'][min_valid_rmse_index]
+print('test rmse is {:.3g} at {}'.format(test_rmse,min_valid_rmse_index))
 
-###
+train_curve = curves['train_loss']
+for epoch in range(len(train_curve)):
+    train_loss = train_curve[epoch]
+    Train_loss = train_curve[:epoch]
+    if (len(Train_loss)>200):
+        jump = train_loss-Train_loss[-1]
+        pre20jump = sum(abs(np.array([Train_loss[-i-1]-Train_loss[-i] for i in range(1,11)])))
+        # print("jump is {:.3g}, total pre20 jump is {:.3g}".format(jump,pre20jump))
+        if jump > pre20jump:
+            print("loss jumping at epoch {} of value {:.3g}".format(epoch,train_loss))
+
+### test rmse from saved prediction
 
 # if args.domain == 'uci':
 #     from uci.uci_data import load_data
@@ -70,7 +81,7 @@ for key in args.__dict__.keys():
 # test_l1 = l1.item()
 # print("test rmse: ",test_rmse, " l1: ",test_l1)
 
-######
+### test rmse from saved model
 
 if args.domain == 'uci':
     from uci.uci_data import load_data

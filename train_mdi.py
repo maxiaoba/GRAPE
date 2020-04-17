@@ -15,6 +15,7 @@ from utils.utils import auto_select_gpu
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--dual_gnn', action='store_true', default=False)
     parser.add_argument('--model_types', type=str, default='EGSAGE_EGSAGE_EGSAGE')
     parser.add_argument('--post_hiddens', type=str, default=None,) # default to be 1 hidden of node_dim
     parser.add_argument('--concat_states', action='store_true', default=False)
@@ -45,6 +46,7 @@ def main():
     parser.add_argument('--save_prediction', action='store_true', default=False)
     parser.add_argument('--transfer_dir', type=str, default=None)
     parser.add_argument('--transfer_extra', type=str, default='')
+    parser.add_argument('--mode', type=str, default='train')
     subparsers = parser.add_subparsers()
     add_uci_subparser(subparsers)
     add_mc_subparser(subparsers)
