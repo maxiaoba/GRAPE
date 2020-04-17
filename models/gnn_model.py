@@ -131,7 +131,7 @@ class GNNStack(torch.nn.Module):
         if self.concat_states:
             concat_x = []
         for l,(conv_name,conv) in enumerate(zip(self.model_types,self.convs)):
-            self.check_input(x,edge_attr,edge_index)
+            # self.check_input(x,edge_attr,edge_index)
             if conv_name == 'EGCN' or conv_name == 'EGSAGE':
                 x = conv(x, edge_attr, edge_index)
             else:
