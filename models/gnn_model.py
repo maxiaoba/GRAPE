@@ -213,15 +213,16 @@ class GNNDualStack(GNNStack):
         edge_index1 = edge_index[:,:edge_num]
         edge_attr2 = edge_attr[edge_num:]
         edge_index2 = edge_index[:,edge_num:]
-        assert torch.all(torch.eq(edge_attr1,edge_attr2))
+        # assert torch.all(torch.eq(edge_attr1,edge_attr2))
+        # assert torch.all(torch.eq(edge_index1[0,:],edge_index2[1,:]))
+        # assert torch.all(torch.eq(edge_index2[1,:],edge_index1[0,:]))
         if self.concat_states:
             concat_x = []
         for l,(conv_name,conv1,conv2) in enumerate(zip(self.model_types,self.convs1,self.convs2)):
-            self.check_input(x,edge_attr,edge_index)
+            # self.check_input(x,edge_attr1,edge_index1)
+            # self.check_input(x,edge_attr2,edge_index2)
             if conv_name == 'EGCN' or conv_name == 'EGSAGE':
-                x0 = x.copy()
                 x1 = conv1(x, edge_attr1, edge_index1)
-                assert torch.all(torch.eq(x0,x))
                 x2 = conv2(x, edge_attr2, edge_index2)
             else:
                 x1 = conv1(x, edge_index1)
