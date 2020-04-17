@@ -1,0 +1,1 @@
+python train_mdi.py --epochs 2000 --log_dir 24onehotep2e3duallr1e-4 --lr 1e-4 --dual_gnn --save_mode --save_prediction --post_hiddens 0 --norm_embs 0_0_0 --valid 0.1 mc --testing --norm_label --data yahoo_music --one_hot_edge
