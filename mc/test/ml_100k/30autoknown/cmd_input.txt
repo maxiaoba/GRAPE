@@ -1,0 +1,1 @@
+python train_mdi.py --epochs 5000 --log_dir 30autoknown --auto_known --save_prediction --post_hiddens 0 --norm_embs 0_0_0 --valid 0.1 mc --testing --norm_label --data ml_100k --one_hot_edge
