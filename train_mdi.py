@@ -36,9 +36,8 @@ def main():
     parser.add_argument('--weight_decay', type=float, default=0.)
     parser.add_argument('--lr', type=float, default=0.001)
     parser.add_argument('--node_mode', type=int, default=0)  # 0: feature onehot, sample all 1; 1: all onehot
-    parser.add_argument('--train_edge', type=float, default=0.7)
-    parser.add_argument('--train_y', type=float, default=0.7)
     parser.add_argument('--known', type=float, default=0.7)
+    parser.add_argument('--auto_known', action='store_true', default=False)
     parser.add_argument('--valid', type=float, default=0.)
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--log_dir', type=str, default='0')

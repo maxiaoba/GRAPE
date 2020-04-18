@@ -77,14 +77,15 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
         print("train edge num is {}, test edge num is {}"\
                 .format(
                 train_edge_attr.shape[0],test_edge_attr.shape[0]))
-
+    if args.auto_known:
+        args.known = float(all_train_labels.shape[0])/float(all_train_labels.shape[0]+test_labels.shape[0])
+        print("auto calculating known is {}/{} = {:.3g}".format(all_train_labels.shape[0],all_train_labels.shape[0]+test_labels.shape[0],args.known))
     obj = dict()
     obj['args'] = args
     obj['outputs'] = dict()
     for epoch in range(args.epochs):
         model.train()
         impute_model.train()
-
         known_mask = get_known_mask(args.known, int(train_edge_attr.shape[0] / 2)).to(device)
         double_known_mask = torch.cat((known_mask, known_mask), dim=0)
         known_edge_index, known_edge_attr = mask_edge(train_edge_index, train_edge_attr, double_known_mask, True)
