@@ -92,7 +92,8 @@ def get_data(df_X, df_y, node_mode, train_edge_prob, train_y_prob, seed=0, norma
             test_edge_index=test_edge_index,test_edge_attr=test_edge_attr,
             test_edge_mask=~train_edge_mask,test_labels=test_labels, 
             df_X=df_X,df_y=df_y,
-            edge_attr_dim=train_edge_attr.shape[-1]
+            edge_attr_dim=train_edge_attr.shape[-1],
+            user_num=df_X.shape[0]
             )
     
     return data
