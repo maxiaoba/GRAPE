@@ -224,7 +224,6 @@ class GNNDualStack(GNNStack):
             # self.check_input(x,edge_attr1,edge_index1)
             # self.check_input(x,edge_attr2,edge_index2)
             if conv_name == 'EGCN' or conv_name == 'EGSAGE':
-                print(edge_index1.shape)
                 x1 = conv1(x, edge_attr1, edge_index1)
                 x2 = conv2(x, edge_attr2, edge_index2)
             else:
