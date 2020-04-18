@@ -209,10 +209,12 @@ class GNNDualStack(GNNStack):
 
     def forward(self, x, edge_attr, edge_index):
         edge_num = int(edge_attr.shape[0]/2)
-        edge_attr1 = edge_attr[:edge_num]
-        edge_index1 = edge_index[:,:edge_num]
-        edge_attr2 = edge_attr[edge_num:]
-        edge_index2 = edge_index[:,edge_num:]
+        # pay attention to order, edge index is [(u_ind,p_ind),(p_ind,u_ind)]
+        # the gnn is source_to_target, so edge_index[0,:] is source
+        edge_attr1 = edge_attr[edge_num:]
+        edge_index1 = edge_index[:,edge_num:]
+        edge_attr2 = edge_attr[:edge_num]
+        edge_index2 = edge_index[:,:edge_num]
         # assert torch.all(torch.eq(edge_attr1,edge_attr2))
         # assert torch.all(torch.eq(edge_index1[0,:],edge_index2[1,:]))
         # assert torch.all(torch.eq(edge_index2[1,:],edge_index1[0,:]))
@@ -222,6 +224,7 @@ class GNNDualStack(GNNStack):
             # self.check_input(x,edge_attr1,edge_index1)
             # self.check_input(x,edge_attr2,edge_index2)
             if conv_name == 'EGCN' or conv_name == 'EGSAGE':
+                print(edge_index1.shape)
                 x1 = conv1(x, edge_attr1, edge_index1)
                 x2 = conv2(x, edge_attr2, edge_index2)
             else:
