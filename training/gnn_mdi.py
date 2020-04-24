@@ -97,6 +97,8 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
             pred_train = pred[:int(train_edge_attr.shape[0] / 2)]
         else:
             pred_train = pred[:int(train_edge_attr.shape[0] / 2),0]
+        if args.loss_mode == 1:
+            pred_train[known_mask] = train_labels[known_mask]
         label_train = train_labels
 
         if hasattr(args,'ce_loss') and args.ce_loss:

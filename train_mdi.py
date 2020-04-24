@@ -38,6 +38,7 @@ def main():
     parser.add_argument('--node_mode', type=int, default=0)  # 0: feature onehot, sample all 1; 1: all onehot
     parser.add_argument('--known', type=float, default=0.7)
     parser.add_argument('--auto_known', action='store_true', default=False)
+    parser.add_argument('--loss_mode', type=int, default = 0) # 0: loss on all train edge, 1: loss only on unknown train edge
     parser.add_argument('--valid', type=float, default=0.)
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--log_dir', type=str, default='0')
@@ -45,7 +46,7 @@ def main():
     parser.add_argument('--save_prediction', action='store_true', default=False)
     parser.add_argument('--transfer_dir', type=str, default=None)
     parser.add_argument('--transfer_extra', type=str, default='')
-    parser.add_argument('--mode', type=str, default='train')
+    parser.add_argument('--mode', type=str, default='train') # debug
     subparsers = parser.add_subparsers()
     add_uci_subparser(subparsers)
     add_mc_subparser(subparsers)

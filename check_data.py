@@ -45,12 +45,24 @@ train_edge_num = int(data.train_edge_index.shape[1]/2)
 test_edge_num = int(data.test_edge_index.shape[1]/2)
 
 train_user_ids = torch.unique(data.train_edge_index[0,:train_edge_num])
-print(train_user_ids.shape)
+print(train_user_ids.shape,' ',min(train_user_ids),' ',max(train_user_ids))
 test_user_ids = torch.unique(data.test_edge_index[0,:test_edge_num])
-print(test_user_ids.shape)
+print(test_user_ids.shape,' ',min(test_user_ids),' ',max(test_user_ids))
 unseen, seen = 0, 0
 for test_user_id in test_user_ids:
 	if test_user_id in train_user_ids:
+		seen += 1
+	else:
+		unseen +=1
+print(seen,unseen)
+
+train_product_ids = torch.unique(data.train_edge_index[1,:train_edge_num])
+print(train_product_ids.shape,' ',min(train_product_ids),' ',max(train_product_ids))
+test_product_ids = torch.unique(data.test_edge_index[1,:test_edge_num])
+print(test_product_ids.shape,' ',min(test_product_ids),' ',max(test_product_ids))
+unseen, seen = 0, 0
+for test_product_id in test_product_ids:
+	if test_product_id in train_product_ids:
 		seen += 1
 	else:
 		unseen +=1
