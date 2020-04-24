@@ -1,0 +1,1 @@
+python train_mdi.py --edge_mode 4 --log_dir edge4 uci
