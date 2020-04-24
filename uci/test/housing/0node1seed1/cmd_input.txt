@@ -1,0 +1,1 @@
+python train_mdi.py --node_mode 1 --log_dir 0node1seed1 --seed 1 uci
