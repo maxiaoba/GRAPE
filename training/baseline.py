@@ -35,9 +35,8 @@ def baseline_inpute(data,method='mean',level=0):
         X_filled_knn = KNN(k=k, verbose=False).fit_transform(X_incomplete)
         return X_filled_knn
     elif method == 'svd':
-        print(X_incomplete.shape)
-        rank = [int((X_incomplete.shape[1]-1)/10),int((X_incomplete.shape[1]-1)/5),X_incomplete.shape[1]-1][level]
-        X_filled_svd = IterativeSVD(rank=rank,verbose=False).fit_transform(X_incomplete)
+        rank = [np.ceil((X_incomplete.shape[1]-1)/10),np.ceil((X_incomplete.shape[1]-1)/5),X_incomplete.shape[1]-1][level]
+        X_filled_svd = IterativeSVD(rank=int(rank),verbose=False).fit_transform(X_incomplete)
         return X_filled_svd
     elif method == 'mice':
         max_iter = [3,10,50][level]
