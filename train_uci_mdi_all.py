@@ -19,6 +19,8 @@ def main():
     parser.add_argument('--data', type=str, default=None)
     parser.add_argument('--train_edge', type=float, default=0.7)
     parser.add_argument('--train_y', type=float, default=0.7)
+    parser.add_argument('--node_mode', type=int, default=0)  # 0: feature node onehot, sample node all 1; 1: all onehot
+
     parser.add_argument('--dual_gnn', action='store_true', default=False)
     parser.add_argument('--model_types', type=str, default='EGSAGE_EGSAGE_EGSAGE')
     parser.add_argument('--post_hiddens', type=str, default=None,) # default to be 1 hidden of node_dim
@@ -39,13 +41,11 @@ def main():
     parser.add_argument('--dropout', type=float, default=0.)
     parser.add_argument('--weight_decay', type=float, default=0.)
     parser.add_argument('--lr', type=float, default=0.001)
-    parser.add_argument('--node_mode', type=int, default=0)  # 0: feature node onehot, sample node all 1; 1: all onehot
     parser.add_argument('--known', type=float, default=0.7)
     parser.add_argument('--auto_known', action='store_true', default=False)
     parser.add_argument('--loss_mode', type=int, default = 0) # 0: loss on all train edge, 1: loss only on unknown train edge
     parser.add_argument('--valid', type=float, default=0.)
     parser.add_argument('--seed', type=int, default=0)
-    parser.add_argument('--log_dir', type=str, default='0')
     parser.add_argument('--save_model', action='store_true', default=False)
     parser.add_argument('--save_prediction', action='store_true', default=False)
     parser.add_argument('--transfer_dir', type=str, default=None)

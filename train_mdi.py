@@ -35,7 +35,6 @@ def main():
     parser.add_argument('--dropout', type=float, default=0.)
     parser.add_argument('--weight_decay', type=float, default=0.)
     parser.add_argument('--lr', type=float, default=0.001)
-    parser.add_argument('--node_mode', type=int, default=0)  # 0: feature onehot, sample all 1; 1: all onehot
     parser.add_argument('--known', type=float, default=0.7)
     parser.add_argument('--auto_known', action='store_true', default=False)
     parser.add_argument('--loss_mode', type=int, default = 0) # 0: loss on all train edge, 1: loss only on unknown train edge
