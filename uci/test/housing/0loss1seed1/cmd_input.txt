@@ -1,0 +1,1 @@
+python train_mdi.py --log_dir 0loss1seed1 --seed 1 --loss_mode 1 uci

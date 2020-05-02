@@ -17,11 +17,19 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--domain', type=str, default='uci')
     parser.add_argument('--data', type=str, default=None)
+    parser.add_argument('--train_edge', type=float, default=0.7)
+    parser.add_argument('--train_y', type=float, default=0.7)
+    parser.add_argument('--dual_gnn', action='store_true', default=False)
     parser.add_argument('--model_types', type=str, default='EGSAGE_EGSAGE_EGSAGE')
+    parser.add_argument('--post_hiddens', type=str, default=None,) # default to be 1 hidden of node_dim
+    parser.add_argument('--concat_states', action='store_true', default=False)
+    parser.add_argument('--norm_embs', type=str, default=None,) # default to be all true
     parser.add_argument('--node_dim', type=int, default=64)
     parser.add_argument('--edge_dim', type=int, default=64)
-    parser.add_argument('--edge_mode', type=int, default=1)  # 0: use it as weight 1: as input to mlp
+    parser.add_argument('--edge_mode', type=int, default=1)  # 0: use it as weight; 1: as input to mlp
+    parser.add_argument('--gnn_activation', type=str, default='relu')
     parser.add_argument('--impute_hiddens', type=str, default='64')
+    parser.add_argument('--impute_activation', type=str, default='relu')
     parser.add_argument('--epochs', type=int, default=20000)
     parser.add_argument('--opt', type=str, default='adam')
     parser.add_argument('--opt_scheduler', type=str, default='none')
@@ -31,11 +39,19 @@ def main():
     parser.add_argument('--dropout', type=float, default=0.)
     parser.add_argument('--weight_decay', type=float, default=0.)
     parser.add_argument('--lr', type=float, default=0.001)
-    parser.add_argument('--train_edge', type=float, default=0.7)
-    parser.add_argument('--train_y', type=float, default=0.7)
+    parser.add_argument('--node_mode', type=int, default=0)  # 0: feature node onehot, sample node all 1; 1: all onehot
     parser.add_argument('--known', type=float, default=0.7)
+    parser.add_argument('--auto_known', action='store_true', default=False)
+    parser.add_argument('--loss_mode', type=int, default = 0) # 0: loss on all train edge, 1: loss only on unknown train edge
     parser.add_argument('--valid', type=float, default=0.)
     parser.add_argument('--seed', type=int, default=0)
+    parser.add_argument('--log_dir', type=str, default='0')
+    parser.add_argument('--save_model', action='store_true', default=False)
+    parser.add_argument('--save_prediction', action='store_true', default=False)
+    parser.add_argument('--transfer_dir', type=str, default=None)
+    parser.add_argument('--transfer_extra', type=str, default='')
+    parser.add_argument('--mode', type=str, default='train') # train/debug
+
     parser.add_argument('--comment', type=str, default='v1')
     args = parser.parse_args()
     print(args)
@@ -55,9 +71,8 @@ def main():
     torch.manual_seed(args.seed)
 
     ## new
-    # for args.data in ['concrete', 'energy', 'housing', 'kin8nm',
-    #                 'naval', 'power', 'protein', 'wine', 'yacht']:
-    for args.data in ['naval', 'power']:
+    for args.data in ['concrete', 'energy', 'housing', 'kin8nm',
+                    'naval', 'power', 'protein', 'wine', 'yacht']:
         data = load_data(args)
 
         log_path = './uci/mdi_results/gnn_mdi_{}/{}/{}/'.format(args.comment, args.data, args.seed)

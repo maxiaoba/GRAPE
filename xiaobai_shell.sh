@@ -1,3 +1,4 @@
-python train_mdi.py --epochs 5000 --log_dir 19onehot --norm_embs 0_0_0 --valid 0.1 mc --testing --norm_label --data yahoo_music --one_hot_edge
-python train_mdi.py --epochs 5000 --log_dir 19softonehot --norm_embs 0_0_0 --valid 0.1 mc --testing --norm_label --data yahoo_music --soft_one_hot_edge
-python train_mdi.py --epochs 5000 --log_dir 26softonehot --norm_embs 0_0_0 --edge_dim 16 --node_dim 16 --impute_hiddens '' --post_hiddens 0 --valid 0.1 mc --testing --norm_label --data flixster --soft_one_hot_edge
+for seed in 0 1 2 3 4
+do
+	python train_usci_mdi_all.py --post_hiddens 0 --seed $seed --comment v2
+done
