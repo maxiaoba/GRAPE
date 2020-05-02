@@ -23,7 +23,12 @@
 # 	python baseline_uci_mdi_all.py --level 0 --seed $seed --comment v2lv0
 # done
 
+# for seed in 0 1 2 3 4
+# do
+# 	python baseline_uci_mdi_all.py --level 1 --seed $seed --comment v2lv1
+# done
+
 for seed in 0 1 2 3 4
 do
-	python baseline_uci_mdi_all.py --level 1 --seed $seed --comment v2lv1
+	python baseline_uci_mdi_all.py --level 2 --seed $seed --comment v2lv2
 done
