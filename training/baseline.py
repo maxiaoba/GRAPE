@@ -43,9 +43,9 @@ def baseline_inpute(data, method='mean',level=0):
         X_filled_mice = IterativeImputer(max_iter=max_iter).fit_transform(X_incomplete)
         return X_filled_mice
     elif method == 'spectral':
-        #default value for the sparsity level is with respoect to the maximum singular value,
-        #this is now down in a heuristic way
-        sparsity = [0.5,1.5,3][level]
+        # default value for the sparsity level is with respect to the maximum singular value,
+        # this is now done in a heuristic way
+        sparsity = [0.5,None,3][level]
         X_filled_spectral = SoftImpute(shrinkage_value=sparsity).fit_transform(X_incomplete)
         return X_filled_spectral
     else:

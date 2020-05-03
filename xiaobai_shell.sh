@@ -35,5 +35,14 @@
 
 for seed in 0 1 2 3 4
 do
-	python baseline_uci_mdi_all.py --train_edge 0.5 --train_y 0.5 --level 1 --seed $seed --comment v2lv1miss0.5
+	python baseline_uci_mdi_all.py --level 0 --seed $seed --comment v2lv0
 done
+
+# for seed in 0 1 2 3 4
+# do
+# 	for level in 1 2
+# 	do
+# 		python baseline_uci_mdi_all.py --level $level --seed $seed --comment v2lv$level
+# 	done
+# done
+
