@@ -28,7 +28,12 @@
 # 	python baseline_uci_mdi_all.py --level 1 --seed $seed --comment v2lv1
 # done
 
+# for seed in 0 1 2 3 4
+# do
+# 	python baseline_uci_mdi_all.py --level 1 --seed $seed --comment v2lv1
+# done
+
 for seed in 0 1 2 3 4
 do
-	python baseline_uci_mdi_all.py --level 2 --seed $seed --comment v2lv2
+	python baseline_uci_mdi_all.py --train_edge 0.5 --train_y 0.5 --level 1 --seed $seed --comment v2lv1miss0.5
 done
