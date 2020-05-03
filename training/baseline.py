@@ -1,4 +1,4 @@
-from fancyimpute import SimpleFill, KNN, IterativeImputer, IterativeSVD
+from fancyimpute import SimpleFill, KNN, IterativeImputer, IterativeSVD, SoftImpute
 import numpy as np
 import pandas as pd
 from sklearn import preprocessing
@@ -23,7 +23,7 @@ def baseline_mdi(data, args, log_path):
     print('rmse: {:.3g}, mae: {:.3g}'.format(rmse,mae))
     pickle.dump(obj, open(log_path + 'result.pkl', "wb"))
 
-def baseline_inpute(data,method='mean',level=0):
+def baseline_inpute(data, method='mean',level=0):
     train_mask = data.train_edge_mask.numpy()
     X, X_incomplete = construct_missing_X(train_mask, data.df_X)
     
@@ -42,5 +42,16 @@ def baseline_inpute(data,method='mean',level=0):
         max_iter = [3,10,50][level]
         X_filled_mice = IterativeImputer(max_iter=max_iter).fit_transform(X_incomplete)
         return X_filled_mice
+    elif method == 'spectral':
+        #default value for the sparsity level is with respoect to the maximum singular value,
+        #this is now down in a heuristic way
+        sparsity = [0.5,1.5,3][level]
+        X_filled_spectral = SoftImpute(shrinkage_value=sparsity).fit_transform(X_incomplete)
+        return X_filled_spectral
     else:
         raise NotImplementedError
+
+
+
+
+
