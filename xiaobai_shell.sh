@@ -33,16 +33,16 @@
 # 	python baseline_uci_mdi_all.py --level 1 --seed $seed --comment v2lv1
 # done
 
-for seed in 0 1 2 3 4
-do
-	python baseline_uci_mdi_all.py --level 0 --seed $seed --comment v2lv0
-done
-
 # for seed in 0 1 2 3 4
 # do
-# 	for level in 1 2
-# 	do
-# 		python baseline_uci_mdi_all.py --level $level --seed $seed --comment v2lv$level
-# 	done
+# 	python baseline_uci_mdi_all.py --level 0 --seed $seed --comment v2lv0
 # done
+
+for train in 0.3 0.5 0.7 0.9
+do
+	for seed in 0 1 2 3 4
+	do
+		python baseline_uci_mdi_all.py --best_level --train_edge $train --seed $seed --comment v2_best_train$train
+	done
+done
 
