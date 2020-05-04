@@ -28,7 +28,7 @@
 
 for seed in 0 1 2 3 4
 do
-	python train_uci_mdi_all.py --post_hiddens 0 --train_edge 0.9 --epochs 50000 --valid 0.1 --save_model --seed $seed --comment ep5e4_v2_train0.9
+	python train_uci_mdi_all.py --post_hiddens 0 --train_edge 0.7 --epochs 50000 --valid 0.1 --save_model --seed $seed --comment ep5e4_v2_train0.7
 done
 
 
