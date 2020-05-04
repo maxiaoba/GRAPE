@@ -5,12 +5,14 @@ import joblib
 pre_path = "./uci/mdi_results"
 datasets = ["concrete","energy","housing","kin8nm","naval","power",
 			"protein","wine","yacht"]
-methods = ["knn","mean","mice","svd","gnn_mdi"]
-method_names = ["knn","mean","mice","svd","gnn"]
-comment = 'v1'
+# methods = ["knn","mean","mice","svd","gnn_mdi"]
+methods = ["knn","mean","mice","svd","spectral"]
+# method_names = ["knn","mean","mice","svd","gnn"]
+method_names = ["knn","mean","mice","svd","spectral"]
+comment = 'v2lv2'
 seeds = [0,1,2,3,4]
 
-with open("{}/results_mae.txt".format(pre_path), "w") as text_file:
+with open("{}/results_mae_{}.txt".format(pre_path,comment), "w") as text_file:
 	text_file.write(' & ')
 	for i,dataset in enumerate(datasets):
 		if i == len(datasets)-1:
