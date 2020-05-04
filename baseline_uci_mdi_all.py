@@ -40,7 +40,7 @@ def main():
                 args.level = best_levels[args.method]
                 print("using best level {} for {}".format(args.level,args.method))
             data = load_data(args)
-            log_path = './uci/mdi_results/{}_{}/{}/{}/'.format(args.method, args.comment, args.data, args.seed)
+            log_path = './uci/mdi_results/results/{}_{}/{}/{}/'.format(args.method, args.comment, args.data, args.seed)
             if not os.path.isdir(log_path):
                 os.makedirs(log_path)
             baseline_mdi(data, args, log_path)

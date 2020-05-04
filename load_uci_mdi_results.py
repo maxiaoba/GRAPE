@@ -5,14 +5,12 @@ import joblib
 pre_path = "./uci/mdi_results"
 datasets = ["concrete","energy","housing","kin8nm","naval","power",
 			"protein","wine","yacht"]
-# methods = ["knn","mean","mice","svd","gnn_mdi"]
-methods = ["knn","mean","mice","svd","spectral"]
-# method_names = ["knn","mean","mice","svd","gnn"]
-method_names = ["knn","mean","mice","svd","spectral"]
-comment = 'v2lv2'
+methods = ["knn","mean","mice","svd","spectral","gnn_mdi"]
+method_names = ["knn","mean","mice","svd","spectral","gnn"]
+comment = 'v2train0.9'
 seeds = [0,1,2,3,4]
 
-with open("{}/results_mae_{}.txt".format(pre_path,comment), "w") as text_file:
+with open("{}/tables/mae_{}.txt".format(pre_path,comment), "w") as text_file:
 	text_file.write(' & ')
 	for i,dataset in enumerate(datasets):
 		if i == len(datasets)-1:
@@ -24,7 +22,7 @@ with open("{}/results_mae_{}.txt".format(pre_path,comment), "w") as text_file:
 		for i,dataset in enumerate(datasets):
 			result = []
 			for seed in seeds:
-				load_path = './uci/mdi_results/{}_{}/{}/{}/'.format(method, comment, dataset, seed)
+				load_path = './uci/mdi_results/results/{}_{}/{}/{}/'.format(method, comment, dataset, seed)
 				obj = joblib.load(load_path+'result.pkl')
 				if method.startswith('gnn'):
 					result.append(obj['curves']['test_l1'][-1])

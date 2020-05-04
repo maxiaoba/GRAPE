@@ -10,7 +10,7 @@ method_names = ["knn","mean","mice","svd","gnn","gnn n2n"]
 comment = 'v1'
 seeds = [0,1,2,3,4]
 
-with open("{}/results_mae.txt".format(pre_path), "w") as text_file:
+with open("{}/tables/results_mae.txt".format(pre_path), "w") as text_file:
 	text_file.write(' & ')
 	for i,dataset in enumerate(datasets):
 		if i == len(datasets)-1:

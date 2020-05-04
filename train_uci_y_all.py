@@ -59,7 +59,7 @@ def main():
                     'naval', 'power', 'protein', 'wine', 'yacht']:
         data = load_data(args)
 
-        log_path = './uci/y_results/gnn_{}/{}/{}/'.format(args.comment, args.data, args.seed)
+        log_path = './uci/y_results/results/gnn_{}/{}/{}/'.format(args.comment, args.data, args.seed)
 
         if not os.path.isdir(log_path):
             os.makedirs(log_path)

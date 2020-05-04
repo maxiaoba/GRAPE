@@ -33,7 +33,7 @@ def main():
         for args.method in ['gnn_mdi']:
             data = load_data(args)
 
-            log_path = './uci/y_results/{}_{}/{}/{}/'.format(args.method, args.comment, args.data, args.seed)
+            log_path = './uci/y_results/results/{}_{}/{}/{}/'.format(args.method, args.comment, args.data, args.seed)
             if not os.path.isdir(log_path):
                 os.makedirs(log_path)
             load_path = './uci/mdi_results/gnn_mdi_{}/{}/{}/'.format(args.comment, args.data, args.seed)
