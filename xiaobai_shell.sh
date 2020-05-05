@@ -28,7 +28,7 @@
 
 for seed in 0 1 2 3 4
 do
-	python train_uci_y_all.py --post_hiddens 0 --train_edge 0.3 --seed $seed --comment v2train0.3
+	python train_uci_y_all.py --post_hiddens 0 --train_edge 0.9 --seed $seed --comment v2train0.9
 done
 
 
