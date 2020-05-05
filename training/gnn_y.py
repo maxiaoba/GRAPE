@@ -3,33 +3,36 @@ import torch
 import torch.nn.functional as F
 import pickle
 
-from models.gnn_model import GNNStack
+from models.gnn_model import get_gnn
 from models.prediction_model import MLPNet
 from utils.plot_utils import plot_curve, plot_sample
 from utils.utils import build_optimizer, objectview, get_known_mask, mask_edge
 
 def train_gnn_y(data, args, log_path, device=torch.device('cpu')):
-    model_types = args.model_types.split('_')
+    model = get_gnn(data, args).to(device)
+
     if args.impute_hiddens == '':
         impute_hiddens = []
     else:
         impute_hiddens = list(map(int, args.impute_hiddens.split('_')))
+    if args.concat_states:
+        input_dim = args.node_dim * len(model.convs) * 2
+    else:
+        input_dim = args.node_dim * 2
+    impute_model = MLPNet(input_dim, 1,
+                            hidden_layer_sizes=impute_hiddens,
+                            hidden_activation=args.impute_activation,
+                            dropout=args.dropout).to(device)
+
     if args.predict_hiddens == '':
         predict_hiddens = []
     else:
         predict_hiddens = list(map(int, args.predict_hiddens.split('_')))
-
     n_row, n_col = data.df_X.shape
-    # build model
-    model = GNNStack(data.num_node_features, data.edge_attr_dim,
-                        args.node_dim, args.edge_dim, args.edge_mode,
-                        model_types, args.dropout).to(device)
-    impute_model = MLPNet([args.node_dim, args.node_dim], 1,
-                          hidden_layer_sizes=impute_hiddens,
-                          dropout=args.dropout).to(device)
-    predict_model = MLPNet([n_col], 1,
+    predict_model = MLPNet(n_col, 1,
                            hidden_layer_sizes=predict_hiddens,
                            dropout=args.dropout).to(device)
+
     trainable_parameters = list(model.parameters()) \
                            + list(impute_model.parameters()) \
                            + list(predict_model.parameters())
@@ -103,53 +106,54 @@ def train_gnn_y(data, args, log_path, device=torch.device('cpu')):
         model.eval()
         impute_model.eval()
         predict_model.eval()
-        if args.valid > 0.:
+        with torch.no_grad():
+            if args.valid > 0.:
+                x_embd = model(x, train_edge_attr, train_edge_index)
+                X = impute_model([x_embd[edge_index[0, :int(n_row * n_col)]], x_embd[edge_index[1, :int(n_row * n_col)]]])
+                X = torch.reshape(X, [n_row, n_col])
+                pred = predict_model(X)[:, 0]
+                pred_valid = pred[valid_y_mask]
+                label_valid = y[valid_y_mask]
+                mse = F.mse_loss(pred_valid, label_valid)
+                valid_rmse = np.sqrt(mse.item())
+                l1 = F.l1_loss(pred_valid, label_valid)
+                valid_l1 = l1.item()
+                if valid_l1 < best_valid_l1:
+                    best_valid_l1 = valid_l1
+                    best_valid_l1_epoch = epoch
+                    torch.save(model, log_path + 'model_best_valid_l1.pt')
+                    torch.save(impute_model, log_path + 'impute_model_best_valid_l1.pt')
+                    torch.save(predict_model, log_path + 'predict_model_best_valid_l1.pt')
+                if valid_rmse < best_valid_rmse:
+                    best_valid_rmse = valid_rmse
+                    best_valid_rmse_epoch = epoch
+                    torch.save(model, log_path + 'model_best_valid_rmse.pt')
+                    torch.save(impute_model, log_path + 'impute_model_best_valid_rmse.pt')
+                    torch.save(predict_model, log_path + 'predict_model_best_valid_rmse.pt')
+                Valid_rmse.append(valid_rmse)
+                Valid_l1.append(valid_l1)
+
             x_embd = model(x, train_edge_attr, train_edge_index)
             X = impute_model([x_embd[edge_index[0, :int(n_row * n_col)]], x_embd[edge_index[1, :int(n_row * n_col)]]])
             X = torch.reshape(X, [n_row, n_col])
             pred = predict_model(X)[:, 0]
-            pred_valid = pred[valid_y_mask]
-            label_valid = y[valid_y_mask]
-            mse = F.mse_loss(pred_valid, label_valid)
-            valid_rmse = np.sqrt(mse.item())
-            l1 = F.l1_loss(pred_valid, label_valid)
-            valid_l1 = l1.item()
-            if valid_l1 < best_valid_l1:
-                best_valid_l1 = valid_l1
-                best_valid_l1_epoch = epoch
-                torch.save(model, log_path + 'model_best_valid_l1.pt')
-                torch.save(impute_model, log_path + 'impute_model_best_valid_l1.pt')
-                torch.save(predict_model, log_path + 'predict_model_best_valid_l1.pt')
-            if valid_rmse < best_valid_rmse:
-                best_valid_rmse = valid_rmse
-                best_valid_rmse_epoch = epoch
-                torch.save(model, log_path + 'model_best_valid_rmse.pt')
-                torch.save(impute_model, log_path + 'impute_model_best_valid_rmse.pt')
-                torch.save(predict_model, log_path + 'predict_model_best_valid_rmse.pt')
-            Valid_rmse.append(valid_rmse)
-            Valid_l1.append(valid_l1)
+            pred_test = pred[test_y_mask]
+            label_test = y[test_y_mask]
+            mse = F.mse_loss(pred_test, label_test)
+            test_rmse = np.sqrt(mse.item())
+            l1 = F.l1_loss(pred_test, label_test)
+            test_l1 = l1.item()
 
-        x_embd = model(x, train_edge_attr, train_edge_index)
-        X = impute_model([x_embd[edge_index[0, :int(n_row * n_col)]], x_embd[edge_index[1, :int(n_row * n_col)]]])
-        X = torch.reshape(X, [n_row, n_col])
-        pred = predict_model(X)[:, 0]
-        pred_test = pred[test_y_mask]
-        label_test = y[test_y_mask]
-        mse = F.mse_loss(pred_test, label_test)
-        test_rmse = np.sqrt(mse.item())
-        l1 = F.l1_loss(pred_test, label_test)
-        test_l1 = l1.item()
-
-        Train_loss.append(train_loss)
-        Test_rmse.append(test_rmse)
-        Test_l1.append(test_l1)
-        print('epoch: ', epoch)
-        print('loss: ', train_loss)
-        if args.valid > 0.:
-            print('valid rmse: ', valid_rmse)
-            print('valid l1: ', valid_l1)
-        print('test rmse: ', test_rmse)
-        print('test l1: ', test_l1)
+            Train_loss.append(train_loss)
+            Test_rmse.append(test_rmse)
+            Test_l1.append(test_l1)
+            print('epoch: ', epoch)
+            print('loss: ', train_loss)
+            if args.valid > 0.:
+                print('valid rmse: ', valid_rmse)
+                print('valid l1: ', valid_l1)
+            print('test rmse: ', test_rmse)
+            print('test l1: ', test_l1)
 
     pred_train = pred_train.detach().cpu().numpy()
     label_train = label_train.detach().cpu().numpy()
