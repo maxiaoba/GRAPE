@@ -32,13 +32,13 @@ def main():
     torch.manual_seed(args.seed)
 
     best_levels = {'mean':0, 'knn':2, 'svd':2, 'mice':0, 'spectral':1}
-    
+
     ## new
     for args.data in ['concrete', 'energy', 'housing', 'kin8nm',
                     'naval', 'power', 'protein', 'wine', 'yacht']:
         for args.method in ['gnn_mdi', 'mean', 'knn', 'svd', 'mice', 'spectral']:
             data = load_data(args)
-            if args.best_level:
+            if args.best_level and (args.method != 'gnn_mdi'):
                 args.level = best_levels[args.method]
                 print("using best level {} for {}".format(args.level,args.method))
             log_path = './uci/y_results/results/{}_{}/{}/{}/'.format(args.method, args.comment, args.data, args.seed)
