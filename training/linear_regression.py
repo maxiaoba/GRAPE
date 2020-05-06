@@ -37,7 +37,7 @@ def linear_regression(data, args, log_path, load_path):
             assert X_true[test_edge_index[0, i], test_edge_index[1, i] - y.shape[0]] == test_edge_attr[i]
             X[test_edge_index[0, i], test_edge_index[1, i] - y.shape[0]] = x_pred[i]
     else:
-        X = baseline_inpute(data, args.method)
+        X = baseline_inpute(data, args.method, args.level)
 
     reg = LinearRegression().fit(X[train_y_mask, :], y_train)
     y_pred_test = reg.predict(X[test_y_mask, :])
