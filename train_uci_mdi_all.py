@@ -76,9 +76,8 @@ def main():
     ## new
     # for args.data in ['concrete', 'energy', 'housing', 'kin8nm',
     #                 'naval', 'power', 'protein', 'wine', 'yacht']:
-    for args.data in ['concrete', 'energy', 'housing', 'wine', 'yacht']:
-                    # large: 'kin8nm', 'naval', 'power', 
-                    # super large: 'protein':
+    # for args.data in ['concrete', 'energy', 'housing', 'wine', 'yacht']:
+    for args.data in [ 'kin8nm', 'naval', 'power', 'protein']:
         data = load_data(args)
 
         log_path = './uci/mdi_results/results/gnn_mdi_{}/{}/{}/'.format(args.comment, args.data, args.seed)
