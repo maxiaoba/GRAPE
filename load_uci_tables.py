@@ -2,15 +2,18 @@ import os.path as osp
 import numpy as np
 import joblib
 
+# pre_path = "./uci/mdi_results"
 pre_path = "./uci/y_results"
 datasets = ["concrete","energy","housing","kin8nm","naval","power",
 			"protein","wine","yacht"]
-methods = ["knn","mean","mice","svd","gnn_mdi","gnn"]
-method_names = ["knn","mean","mice","svd","gnn","gnn n2n"]
-comment = 'v1'
+# methods = ["knn","mean","mice","svd","spectral","gain","gnn_mdi"]
+methods = ["knn","mean","mice","svd","spectral","gain","gnn_mdi","gnn"]
+# method_names = ["knn","mean","mice","svd","spectral","gain","gnn"]
+method_names = ["knn","mean","mice","svd","spectral","gain","gnn","gnn n2n"]
+comment = 'v2train0.3'
 seeds = [0,1,2,3,4]
 
-with open("{}/tables/results_mae.txt".format(pre_path), "w") as text_file:
+with open("{}/tables/mae_{}.txt".format(pre_path,comment), "w") as text_file:
 	text_file.write(' & ')
 	for i,dataset in enumerate(datasets):
 		if i == len(datasets)-1:
@@ -22,12 +25,14 @@ with open("{}/tables/results_mae.txt".format(pre_path), "w") as text_file:
 		for i,dataset in enumerate(datasets):
 			result = []
 			for seed in seeds:
-				load_path = './uci/y_results/{}_{}/{}/{}/'.format(method, comment, dataset, seed)
+				load_path = '{}/results/{}_{}/{}/{}/'.format(pre_path,method, comment, dataset, seed)
 				obj = joblib.load(load_path+'result.pkl')
-				if method.startswith('gnn_mdi'):
-					result.append(obj['mae'])
-				elif method.startswith('gnn'):
+				# if method == 'gnn_mdi':
+				if method == 'gnn':
 					result.append(obj['curves']['test_l1'][-1])
+				elif method == 'gain':
+					# result.append(obj['mdi_mae'])
+					result.append(obj['reg_mae'])
 				else:
 					result.append(obj['mae'])
 			mean = np.mean(result)

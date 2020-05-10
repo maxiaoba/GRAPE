@@ -4,15 +4,19 @@ import joblib
 import matplotlib.pyplot as plt
 
 pre_path = "./uci/mdi_results"
+# pre_path = "./uci/y_results"
 datasets = ["concrete","energy","housing","kin8nm","naval","power",
 			"protein","wine","yacht"]
 methods = ["knn","mean","mice","svd","spectral","gain","gnn_mdi"]
+# methods = ["knn","mean","mice","svd","spectral","gain","gnn_mdi","gnn"]
 method_names = ["knn","mean","mice","svd","spectral","gain","gnn"]
-comments = ['v2train0.3','v2train0.5','v2train0.7','v2train0.9']
-xs = [0.3,0.5,0.7,0.9]
+# method_names = ["knn","mean","mice","svd","spectral","gain","gnn","gnn n2n"]
+comments = ['v2train0.9','v2train0.7','v2train0.5','v2train0.3']
+xs = [0.9,0.7,0.5,0.3]
 xlabel = 'known ratio'
 ylabel = 'test mae'
-plot_name = 'known_ratio'
+plot_name = 'mdi_known_ratio'
+# plot_name = 'reg_known_ratio'
 seeds = [0,1,2,3,4]
 
 
@@ -23,12 +27,14 @@ for dataset in datasets:
 		for comment in comments:
 			result = []
 			for seed in seeds:
-				load_path = './uci/mdi_results/results/{}_{}/{}/{}/'.format(method, comment, dataset, seed)
+				load_path = '{}/results/{}_{}/{}/{}/'.format(pre_path, method, comment, dataset, seed)
 				obj = joblib.load(load_path+'result.pkl')
-				if method.startswith('gnn'):
+				if method == 'gnn_mdi':
+				# if method == 'gnn':
 					result.append(obj['curves']['test_l1'][-1])
 				elif method == 'gain':
 					result.append(obj['mdi_mae'])
+					# result.append(obj['reg_mae'])
 				else:
 					result.append(obj['mae'])
 			mean = np.mean(result)

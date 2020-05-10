@@ -45,12 +45,33 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
     Lr = []
 
     x = data.x.clone().detach().to(device)
-    all_train_edge_index = data.train_edge_index.clone().detach().to(device)
-    all_train_edge_attr = data.train_edge_attr.clone().detach().to(device)
-    all_train_labels = data.train_labels.clone().detach().to(device)
-    test_edge_index = data.test_edge_index.clone().detach().to(device)
-    test_edge_attr = data.test_edge_attr.clone().detach().to(device)
-    test_labels = data.test_labels.clone().detach().to(device)
+    if hasattr(args,'split_sample') and args.split_sample > 0.:
+        if args.split_train:
+            all_train_edge_index = data.lower_train_edge_index.clone().detach().to(device)
+            all_train_edge_attr = data.lower_train_edge_attr.clone().detach().to(device)
+            all_train_labels = data.lower_train_labels.clone().detach().to(device)
+        else:
+            all_train_edge_index = data.train_edge_index.clone().detach().to(device)
+            all_train_edge_attr = data.train_edge_attr.clone().detach().to(device)
+            all_train_labels = data.train_labels.clone().detach().to(device)
+        if args.split_test:
+            test_input_edge_index = data.higher_train_edge_index.clone().detach().to(device)
+            test_input_edge_attr = data.higher_train_edge_attr.clone().detach().to(device)
+        else:
+            test_input_edge_index = data.train_edge_index.clone().detach().to(device)
+            test_input_edge_attr = data.train_edge_attr.clone().detach().to(device)
+        test_edge_index = data.higher_test_edge_index.clone().detach().to(device)
+        test_edge_attr = data.higher_test_edge_attr.clone().detach().to(device)
+        test_labels = data.higher_test_labels.clone().detach().to(device)
+    else:
+        all_train_edge_index = data.train_edge_index.clone().detach().to(device)
+        all_train_edge_attr = data.train_edge_attr.clone().detach().to(device)
+        all_train_labels = data.train_labels.clone().detach().to(device)
+        test_input_edge_index = all_train_edge_index
+        test_input_edge_attr = all_train_edge_attr
+        test_edge_index = data.test_edge_index.clone().detach().to(device)
+        test_edge_attr = data.test_edge_attr.clone().detach().to(device)
+        test_labels = data.test_labels.clone().detach().to(device)
     if hasattr(data,'class_values'):
         class_values = data.class_values.clone().detach().to(device)
     if args.valid > 0.:
@@ -61,10 +82,10 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
         double_valid_mask = torch.cat((valid_mask, valid_mask), dim=0)
         valid_edge_index, valid_edge_attr = mask_edge(all_train_edge_index, all_train_edge_attr, double_valid_mask, True)
         train_edge_index, train_edge_attr = mask_edge(all_train_edge_index, all_train_edge_attr, ~double_valid_mask, True)
-        print("train edge num is {}, valid edge num is {}, test edge num is {}"\
+        print("train edge num is {}, valid edge num is {}, test edge num is input {} output {}"\
                 .format(
-                train_edge_attr.shape[0],valid_edge_attr.shape[0],
-                test_edge_attr.shape[0]))
+                train_edge_attr.shape[0], valid_edge_attr.shape[0],
+                test_input_edge_attr.shape[0], test_edge_attr.shape[0]))
         Valid_rmse = []
         Valid_l1 = []
         best_valid_rmse = np.inf
@@ -74,9 +95,10 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
     else:
         train_edge_index, train_edge_attr, train_labels =\
              all_train_edge_index, all_train_edge_attr, all_train_labels
-        print("train edge num is {}, test edge num is {}"\
+        print("train edge num is {}, test edge num is input {}, output {}"\
                 .format(
-                train_edge_attr.shape[0],test_edge_attr.shape[0]))
+                train_edge_attr.shape[0],
+                test_input_edge_attr.shape[0], test_edge_attr.shape[0]))
     if args.auto_known:
         args.known = float(all_train_labels.shape[0])/float(all_train_labels.shape[0]+test_labels.shape[0])
         print("auto calculating known is {}/{} = {:.3g}".format(all_train_labels.shape[0],all_train_labels.shape[0]+test_labels.shape[0],args.known))
@@ -149,7 +171,7 @@ def train_gnn_mdi(data, args, log_path, device=torch.device('cpu')):
                 Valid_rmse.append(valid_rmse)
                 Valid_l1.append(valid_l1)
 
-            x_embd = model(x, all_train_edge_attr, all_train_edge_index)
+            x_embd = model(x, test_input_edge_attr, test_input_edge_index)
             pred = impute_model([x_embd[test_edge_index[0], :], x_embd[test_edge_index[1], :]])
             if hasattr(args,'ce_loss') and args.ce_loss:
                 pred_test = class_values[pred[:int(test_edge_attr.shape[0] / 2)].max(1)[1]]

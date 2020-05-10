@@ -13,9 +13,6 @@ from uci.uci_subparser import add_uci_subparser
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--seed', type=int, default=0)
-parser.add_argument('--train_edge', type=float, default=0.7)
-parser.add_argument('--train_y', type=float, default=0.7)
-parser.add_argument('--node_mode', type=int, default=0)  # 0: feature onehot, sample all 1; 1: all onehot
 subparsers = parser.add_subparsers()
 add_uci_subparser(subparsers)
 add_mc_subparser(subparsers)
@@ -38,33 +35,41 @@ print('node dim: ',data.num_node_features,' edge dim: ',data.edge_attr_dim)
 for i,key in enumerate(data.keys):
 	if torch.is_tensor(data[key]):
 	    print(key,': ',data[key].shape)
-	else:
-		print(key,': ',data[key])
+	# else:
+	# 	print(key,': ',data[key])
 
-train_edge_num = int(data.train_edge_index.shape[1]/2)
-test_edge_num = int(data.test_edge_index.shape[1]/2)
+if hasattr(args,'split_sample') and args.split_sample > 0.:
+	lower_y = data.y[data.lower_y_index]
+	higher_y = data.y[data.higher_y_index]
+	print('lower_y: {} {} {}'.format(lower_y.shape,torch.min(lower_y),torch.max(lower_y)))
+	print('higher_y: {} {} {}'.format(higher_y.shape,torch.min(higher_y),torch.max(higher_y)))
 
-train_user_ids = torch.unique(data.train_edge_index[0,:train_edge_num])
-print(train_user_ids.shape,' ',min(train_user_ids),' ',max(train_user_ids))
-test_user_ids = torch.unique(data.test_edge_index[0,:test_edge_num])
-print(test_user_ids.shape,' ',min(test_user_ids),' ',max(test_user_ids))
-unseen, seen = 0, 0
-for test_user_id in test_user_ids:
-	if test_user_id in train_user_ids:
-		seen += 1
-	else:
-		unseen +=1
-print(seen,unseen)
+	lower_train_edge_index = data.lower_train_edge_index
+	lower_train_edge_start1 = lower_train_edge_index[0,:int(lower_train_edge_index.shape[1]/2)]
+	lower_train_edge_start2 = lower_train_edge_index[1,int(lower_train_edge_index.shape[1]/2):]
+	assert torch.all(torch.eq(lower_train_edge_start1, lower_train_edge_start2))
+	for start in lower_train_edge_start1:
+		assert start in data.lower_y_index
 
-train_product_ids = torch.unique(data.train_edge_index[1,:train_edge_num])
-print(train_product_ids.shape,' ',min(train_product_ids),' ',max(train_product_ids))
-test_product_ids = torch.unique(data.test_edge_index[1,:test_edge_num])
-print(test_product_ids.shape,' ',min(test_product_ids),' ',max(test_product_ids))
-unseen, seen = 0, 0
-for test_product_id in test_product_ids:
-	if test_product_id in train_product_ids:
-		seen += 1
-	else:
-		unseen +=1
-print(seen,unseen)
+	higher_train_edge_index = data.higher_train_edge_index
+	higher_train_edge_start1 = higher_train_edge_index[0,:int(higher_train_edge_index.shape[1]/2)]
+	higher_train_edge_start2 = higher_train_edge_index[1,int(higher_train_edge_index.shape[1]/2):]
+	assert torch.all(torch.eq(higher_train_edge_start1, higher_train_edge_start2))
+	for start in higher_train_edge_start1:
+		assert start in data.higher_y_index
+
+	lower_test_edge_index = data.lower_test_edge_index
+	lower_test_edge_start1 = lower_test_edge_index[0,:int(lower_test_edge_index.shape[1]/2)]
+	lower_test_edge_start2 = lower_test_edge_index[1,int(lower_test_edge_index.shape[1]/2):]
+	assert torch.all(torch.eq(lower_test_edge_start1, lower_test_edge_start2))
+	for start in lower_test_edge_start1:
+		assert start in data.lower_y_index
+
+	higher_test_edge_index = data.higher_test_edge_index
+	higher_test_edge_start1 = higher_test_edge_index[0,:int(higher_test_edge_index.shape[1]/2)]
+	higher_test_edge_start2 = higher_test_edge_index[1,int(higher_test_edge_index.shape[1]/2):]
+	assert torch.all(torch.eq(higher_test_edge_start1, higher_test_edge_start2))
+	for start in higher_test_edge_start1:
+		assert start in data.higher_y_index
+
 

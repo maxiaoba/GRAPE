@@ -49,7 +49,7 @@ def create_edge_attr(df):
     edge_attr = edge_attr + edge_attr
     return edge_attr
 
-def get_data(df_X, df_y, node_mode, train_edge_prob, train_y_prob, seed=0, normalize=True):
+def get_data(df_X, df_y, node_mode, train_edge_prob, split_sample_ratio, train_y_prob, seed=0, normalize=True):
     if len(df_y.shape)==1:
         df_y = df_y.to_numpy()
     elif len(df_y.shape)==2:
@@ -95,7 +95,61 @@ def get_data(df_X, df_y, node_mode, train_edge_prob, train_y_prob, seed=0, norma
             edge_attr_dim=train_edge_attr.shape[-1],
             user_num=df_X.shape[0]
             )
-    
+
+    if split_sample_ratio > 0.:
+        sorted_y, sorted_y_index = torch.sort(torch.reshape(y,(-1,)))
+        lower_y_index = sorted_y_index[:int(np.floor(y.shape[0]*split_sample_ratio))]
+        higher_y_index = sorted_y_index[int(np.floor(y.shape[0]*split_sample_ratio)):]
+        # here we don't split x, only split edge
+        # train
+        half_train_edge_index = train_edge_index[:,:int(train_edge_index.shape[1]/2)];
+        lower_train_edge_mask = []
+        for node_index in half_train_edge_index[0]:
+            if node_index in lower_y_index:
+                lower_train_edge_mask.append(True)
+            else:
+                lower_train_edge_mask.append(False)
+        lower_train_edge_mask = torch.tensor(lower_train_edge_mask)
+        double_lower_train_edge_mask = torch.cat((lower_train_edge_mask, lower_train_edge_mask), dim=0)
+        lower_train_edge_index, lower_train_edge_attr = mask_edge(train_edge_index, train_edge_attr,
+                                                double_lower_train_edge_mask, True)
+        lower_train_labels = lower_train_edge_attr[:int(lower_train_edge_attr.shape[0]/2),0]
+        higher_train_edge_index, higher_train_edge_attr = mask_edge(train_edge_index, train_edge_attr,
+                                                ~double_lower_train_edge_mask, True)
+        higher_train_labels = higher_train_edge_attr[:int(higher_train_edge_attr.shape[0]/2),0]
+        # test
+        half_test_edge_index = test_edge_index[:,:int(test_edge_index.shape[1]/2)];
+        lower_test_edge_mask = []
+        for node_index in half_test_edge_index[0]:
+            if node_index in lower_y_index:
+                lower_test_edge_mask.append(True)
+            else:
+                lower_test_edge_mask.append(False)
+        lower_test_edge_mask = torch.tensor(lower_test_edge_mask)
+        double_lower_test_edge_mask = torch.cat((lower_test_edge_mask, lower_test_edge_mask), dim=0)
+        lower_test_edge_index, lower_test_edge_attr = mask_edge(test_edge_index, test_edge_attr,
+                                                double_lower_test_edge_mask, True)
+        lower_test_labels = lower_test_edge_attr[:int(lower_test_edge_attr.shape[0]/2),0]
+        higher_test_edge_index, higher_test_edge_attr = mask_edge(test_edge_index, test_edge_attr,
+                                                ~double_lower_test_edge_mask, True)
+        higher_test_labels = higher_test_edge_attr[:int(higher_test_edge_attr.shape[0]/2),0]
+
+
+        data.lower_y_index = lower_y_index
+        data.higher_y_index = higher_y_index
+        data.lower_train_edge_index = lower_train_edge_index
+        data.lower_train_edge_attr = lower_train_edge_attr
+        data.lower_train_labels = lower_train_labels
+        data.higher_train_edge_index = higher_train_edge_index
+        data.higher_train_edge_attr = higher_train_edge_attr
+        data.higher_train_labels = higher_train_labels
+        data.lower_test_edge_index = lower_test_edge_index
+        data.lower_test_edge_attr = lower_test_edge_attr
+        data.lower_test_labels = lower_train_labels
+        data.higher_test_edge_index = higher_test_edge_index
+        data.higher_test_edge_attr = higher_test_edge_attr
+        data.higher_test_labels = higher_test_labels
+        
     return data
 
 def load_data(args):
@@ -103,7 +157,9 @@ def load_data(args):
     df_np = np.loadtxt(uci_path+'/raw_data/{}/data/data.txt'.format(args.data))
     df_y = pd.DataFrame(df_np[:, -1:])
     df_X = pd.DataFrame(df_np[:, :-1])
-    data = get_data(df_X, df_y, args.node_mode, args.train_edge, args.train_y, args.seed)
+    if not hasattr(args,'split_sample'):
+        args.split_sample = 0
+    data = get_data(df_X, df_y, args.node_mode, args.train_edge, args.split_sample, args.train_y, args.seed)
     return data
 
 
