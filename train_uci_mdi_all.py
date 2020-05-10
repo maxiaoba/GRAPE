@@ -15,14 +15,14 @@ from utils.utils import auto_select_gpu
 
 def main():
     parser = argparse.ArgumentParser()
-    subparser.add_argument('--domain', type=str, default='uci')
-    subparser.add_argument('--data', type=str, default='housing')
-    subparser.add_argument('--train_edge', type=float, default=0.7)
-    subparser.add_argument('--split_sample', type=float, default=0.)
-    subparser.add_argument('--split_train', action='store_true', default=False)
-    subparser.add_argument('--split_test', action='store_true', default=False)
-    subparser.add_argument('--train_y', type=float, default=0.7)
-    subparser.add_argument('--node_mode', type=int, default=0)  # 0: feature onehot, sample all 1; 1: all onehot
+    parser.add_argument('--domain', type=str, default='uci')
+    parser.add_argument('--data', type=str, default='housing')
+    parser.add_argument('--train_edge', type=float, default=0.7)
+    parser.add_argument('--split_sample', type=float, default=0.)
+    parser.add_argument('--split_train', action='store_true', default=False)
+    parser.add_argument('--split_test', action='store_true', default=False)
+    parser.add_argument('--train_y', type=float, default=0.7)
+    parser.add_argument('--node_mode', type=int, default=0)  # 0: feature onehot, sample all 1; 1: all onehot
 
     parser.add_argument('--dual_gnn', action='store_true', default=False)
     parser.add_argument('--model_types', type=str, default='EGSAGE_EGSAGE_EGSAGE')
@@ -81,7 +81,7 @@ def main():
                     # super large: 'protein':
         data = load_data(args)
 
-        log_path = './uci/mdi_results/gnn_mdi_{}/{}/{}/'.format(args.comment, args.data, args.seed)
+        log_path = './uci/mdi_results/results/gnn_mdi_{}/{}/{}/'.format(args.comment, args.data, args.seed)
 
         if not os.path.isdir(log_path):
             os.makedirs(log_path)
