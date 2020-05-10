@@ -1,1 +1,0 @@
-python train_mdi.py --node_mode 1 --log_dir node1 uci

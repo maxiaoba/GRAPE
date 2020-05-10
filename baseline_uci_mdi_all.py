@@ -14,10 +14,13 @@ from uci.uci_data import load_data
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--domain', type=str, default='uci')
-    parser.add_argument('--data', type=str, default=None)
+    parser.add_argument('--data', type=str, default='housing')
     parser.add_argument('--train_edge', type=float, default=0.7)
+    parser.add_argument('--split_sample', type=float, default=0.)
+    parser.add_argument('--split_train', action='store_true', default=False)
+    parser.add_argument('--split_test', action='store_true', default=False)
     parser.add_argument('--train_y', type=float, default=0.7)
-    parser.add_argument('--node_mode', type=int, default=0)  # 0: feature node onehot, sample node all 1; 1: all onehot
+    parser.add_argument('--node_mode', type=int, default=0)  # 0: feature onehot, sample all 1; 1: all onehot
 
     parser.add_argument('--method', type=str, default='mean')
     parser.add_argument('--level', type=int, default=0)

@@ -1,1 +1,0 @@
-python train_mdi.py --dual_gnn --seed 1 --log_dir 0dualseed1 uci
