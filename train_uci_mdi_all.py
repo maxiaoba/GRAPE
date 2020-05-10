@@ -15,11 +15,14 @@ from utils.utils import auto_select_gpu
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--domain', type=str, default='uci')
-    parser.add_argument('--data', type=str, default=None)
-    parser.add_argument('--train_edge', type=float, default=0.7)
-    parser.add_argument('--train_y', type=float, default=0.7)
-    parser.add_argument('--node_mode', type=int, default=0)  # 0: feature node onehot, sample node all 1; 1: all onehot
+    subparser.add_argument('--domain', type=str, default='uci')
+    subparser.add_argument('--data', type=str, default='housing')
+    subparser.add_argument('--train_edge', type=float, default=0.7)
+    subparser.add_argument('--split_sample', type=float, default=0.)
+    subparser.add_argument('--split_train', action='store_true', default=False)
+    subparser.add_argument('--split_test', action='store_true', default=False)
+    subparser.add_argument('--train_y', type=float, default=0.7)
+    subparser.add_argument('--node_mode', type=int, default=0)  # 0: feature onehot, sample all 1; 1: all onehot
 
     parser.add_argument('--dual_gnn', action='store_true', default=False)
     parser.add_argument('--model_types', type=str, default='EGSAGE_EGSAGE_EGSAGE')
