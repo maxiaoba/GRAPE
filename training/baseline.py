@@ -11,13 +11,19 @@ def baseline_mdi(data, args, log_path):
     X, X_incomplete = construct_missing_X_from_mask(train_edge_mask, data.df_X)
     # X, X_incomplete = construct_missing_X_from_edge_index(train_edge_index, df)
     if hasattr(args,'split_sample') and args.split_sample > 0.:
-        lower_y_index = data.lower_y_index
-        higher_y_index = data.higher_y_index
-        X = X[higher_y_index]
-        X_incomplete = X_incomplete[higher_y_index]
-
+        if args.split_test:
+            higher_y_index = data.higher_y_index
+            X = X[higher_y_index]
+            X_incomplete = X_incomplete[higher_y_index]
 
     X_filled = baseline_inpute(X_incomplete, args.method,args.level)
+    if hasattr(args,'split_sample') and args.split_sample > 0.:
+        if not args.split_test:
+            higher_y_index = data.higher_y_index
+            X = X[higher_y_index]
+            X_incomplete = X_incomplete[higher_y_index]
+            X_filled = X_filled[higher_y_index]
+
     mask = np.isnan(X_incomplete)
     diff = X[mask] - X_filled[mask]
     mae = np.mean(np.abs(diff))
