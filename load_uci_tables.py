@@ -2,18 +2,32 @@ import os.path as osp
 import numpy as np
 import joblib
 
-# pre_path = "./uci/mdi_results"
-pre_path = "./uci/y_results"
+pre_path = "./uci/mdi_results"
+# pre_path = "./uci/y_results"
 datasets = ["concrete","energy","housing","kin8nm","naval","power",
 			"protein","wine","yacht"]
 # methods = ["knn","mean","mice","svd","spectral","gain","gnn_mdi"]
-methods = ["knn","mean","mice","svd","spectral","gain","gnn_mdi","gnn"]
 # method_names = ["knn","mean","mice","svd","spectral","gain","gnn"]
-method_names = ["knn","mean","mice","svd","spectral","gain","gnn","gnn n2n"]
-comment = 'v2train0.3'
+# methods = ["knn","mean","mice","svd","spectral","gain","gnn_mdi","gnn"]
+# method_names = ["knn","mean","mice","svd","spectral","gain","gnn","gnn n2n"]
+# methods = ["gnn_mdi_v2train0.7","gnn_mdi_v2train0.7known1.0"]
+# method_names = ["with edge dropout","without edge dropout"]
+methods = ["knn_v2train0.7split0.7","knn_v2train0.7split0.7test",
+			"mean_v2train0.7split0.7","mean_v2train0.7split0.7test",
+			"mice_v2train0.7split0.7","mice_v2train0.7split0.7test",
+			"svd_v2train0.7split0.7","svd_v2train0.7split0.7test",
+			"spectral_v2train0.7split0.7","spectral_v2train0.7split0.7test",
+			"gain_v2train0.7split0.7","gain_v2train0.7split0.7train",
+			"gnn_mdi_v2train0.7split0.7test","gnn_mdi_v2train0.7split0.7traintest"
+			]
+method_names = ["knn","knn test","mean","mean test",
+				"mice","mice test","svd", "svd test",
+				"spectral","spectral test","gain","gain train",
+				"gnn test","gnn train test",]
+table_name = 'train0.7split0.7'
 seeds = [0,1,2,3,4]
 
-with open("{}/tables/mae_{}.txt".format(pre_path,comment), "w") as text_file:
+with open("{}/tables/mae_{}.txt".format(pre_path,table_name), "w") as text_file:
 	text_file.write(' & ')
 	for i,dataset in enumerate(datasets):
 		if i == len(datasets)-1:
@@ -25,14 +39,14 @@ with open("{}/tables/mae_{}.txt".format(pre_path,comment), "w") as text_file:
 		for i,dataset in enumerate(datasets):
 			result = []
 			for seed in seeds:
-				load_path = '{}/results/{}_{}/{}/{}/'.format(pre_path,method, comment, dataset, seed)
+				load_path = '{}/results/{}/{}/{}/'.format(pre_path,method, dataset, seed)
 				obj = joblib.load(load_path+'result.pkl')
-				# if method == 'gnn_mdi':
-				if method == 'gnn':
+				if method.startswith('gnn_mdi'):
+				# if method == 'gnn':
 					result.append(obj['curves']['test_l1'][-1])
-				elif method == 'gain':
-					# result.append(obj['mdi_mae'])
-					result.append(obj['reg_mae'])
+				elif method.startswith('gain'):
+					result.append(obj['mdi_mae'])
+					# result.append(obj['reg_mae'])
 				else:
 					result.append(obj['mae'])
 			mean = np.mean(result)
