@@ -1,1 +1,0 @@
-python train_mdi.py --dual_gnn --log_dir dual uci

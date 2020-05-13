@@ -77,7 +77,7 @@ def soft_one_hot(batch,depth):
         encodings[i,:] = encodings[i,:]/torch.sum(encodings[i,:])
     return encodings
 
-def construct_missing_X(train_mask, df):
+def construct_missing_X_from_mask(train_mask, df):
     nrow, ncol = df.shape
     data_incomplete = np.zeros((nrow, ncol))
     data_complete = np.zeros((nrow, ncol)) 
@@ -91,10 +91,20 @@ def construct_missing_X(train_mask, df):
                 data_incomplete[i,j] = np.NaN
     return data_complete, data_incomplete
 
-# def get_impute_mae(X, X_filled, mask):
-#     diff = X[~mask] - X_filled[~mask]
-#     MAE = np.mean(np.abs(diff))
-#     return MAE
+def construct_missing_X_from_edge_index(train_edge_index, df):
+    nrow, ncol = df.shape
+    data_incomplete = np.zeros((nrow, ncol))
+    data_complete = np.zeros((nrow, ncol)) 
+    train_edge_list = torch.transpose(train_edge_index,1,0).numpy()
+    train_edge_list = list(map(tuple,[*train_edge_list]))
+    for i in range(nrow):
+        for j in range(ncol):
+            data_complete[i,j] = df.iloc[i,j]
+            if (i,j) in train_edge_list:
+                data_incomplete[i,j] = df.iloc[i,j]
+            else:
+                data_incomplete[i,j] = np.NaN
+    return data_complete, data_incomplete
 
 # get gpu usage
 def get_gpu_memory_map():

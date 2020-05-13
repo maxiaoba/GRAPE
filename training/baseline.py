@@ -4,15 +4,22 @@ import pandas as pd
 from sklearn import preprocessing
 import pickle
 
-from utils.utils import construct_missing_X
+from utils.utils import construct_missing_X_from_mask
 
 def baseline_mdi(data, args, log_path):
     train_edge_mask = data.train_edge_mask.numpy()
-    X, X_incomplete = construct_missing_X(train_edge_mask, data.df_X)
+    X, X_incomplete = construct_missing_X_from_mask(train_edge_mask, data.df_X)
+    # X, X_incomplete = construct_missing_X_from_edge_index(train_edge_index, df)
+    if hasattr(args,'split_sample') and args.split_sample > 0.:
+        lower_y_index = data.lower_y_index
+        higher_y_index = data.higher_y_index
+        X = X[higher_y_index]
+        X_incomplete = X_incomplete[higher_y_index]
 
-    X_filled = baseline_inpute(data, args.method,args.level)
-    mask = train_edge_mask.reshape(X.shape)
-    diff = X[~mask] - X_filled[~mask]
+
+    X_filled = baseline_inpute(X_incomplete, args.method,args.level)
+    mask = np.isnan(X_incomplete)
+    diff = X[mask] - X_filled[mask]
     mae = np.mean(np.abs(diff))
     rmse = np.sqrt(np.mean(diff**2))
 
@@ -23,10 +30,8 @@ def baseline_mdi(data, args, log_path):
     print('rmse: {:.3g}, mae: {:.3g}'.format(rmse,mae))
     pickle.dump(obj, open(log_path + 'result.pkl', "wb"))
 
-def baseline_inpute(data, method='mean',level=0):
-    train_mask = data.train_edge_mask.numpy()
-    X, X_incomplete = construct_missing_X(train_mask, data.df_X)
-    
+def baseline_inpute(X_incomplete, method='mean',level=0):
+
     if method == 'mean':
         X_filled_mean = SimpleFill().fit_transform(X_incomplete)
         return X_filled_mean
