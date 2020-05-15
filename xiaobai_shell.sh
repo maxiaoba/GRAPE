@@ -50,8 +50,13 @@
 # 	python baseline_uci_mdi_all.py --best_level --split_sample 0.7 --split_by random --split_test --seed $seed --comment v2train0.7splitrandom0.7test
 # done
 
+# for seed in 0 1 2 3 4
+# do
+# 	python train_uci_mdi_all.py --post_hiddens 0 --save_model --split_sample 0.7 --split_by random --split_train --split_test --seed $seed --comment v2train0.7splitrandom0.7traintest
+# done
+
 for seed in 0 1 2 3 4
 do
-	python train_uci_mdi_all.py --post_hiddens 0 --save_model --split_sample 0.7 --split_by random --split_train --split_test --seed $seed --comment v2train0.7splitrandom0.7traintest
+	python train_uci_mdi_all.py --post_hiddens 0 --save_model --split_sample 0.7 --split_by random --split_train --seed $seed --comment v2train0.7splitrandom0.7train
 done
 
