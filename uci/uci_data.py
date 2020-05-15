@@ -49,7 +49,7 @@ def create_edge_attr(df):
     edge_attr = edge_attr + edge_attr
     return edge_attr
 
-def get_data(df_X, df_y, node_mode, train_edge_prob, split_sample_ratio, train_y_prob, seed=0, normalize=True):
+def get_data(df_X, df_y, node_mode, train_edge_prob, split_sample_ratio, split_by, train_y_prob, seed=0, normalize=True):
     if len(df_y.shape)==1:
         df_y = df_y.to_numpy()
     elif len(df_y.shape)==2:
@@ -97,7 +97,10 @@ def get_data(df_X, df_y, node_mode, train_edge_prob, split_sample_ratio, train_y
             )
 
     if split_sample_ratio > 0.:
-        sorted_y, sorted_y_index = torch.sort(torch.reshape(y,(-1,)))
+        if split_by == 'y':
+            sorted_y, sorted_y_index = torch.sort(torch.reshape(y,(-1,)))
+        elif split_by == 'random':
+            sorted_y_index = torch.randperm(y.shape[0])
         lower_y_index = sorted_y_index[:int(np.floor(y.shape[0]*split_sample_ratio))]
         higher_y_index = sorted_y_index[int(np.floor(y.shape[0]*split_sample_ratio)):]
         # here we don't split x, only split edge
@@ -159,7 +162,7 @@ def load_data(args):
     df_X = pd.DataFrame(df_np[:, :-1])
     if not hasattr(args,'split_sample'):
         args.split_sample = 0
-    data = get_data(df_X, df_y, args.node_mode, args.train_edge, args.split_sample, args.train_y, args.seed)
+    data = get_data(df_X, df_y, args.node_mode, args.train_edge, args.split_sample, args.split_by, args.train_y, args.seed)
     return data
 
 

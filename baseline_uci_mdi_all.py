@@ -17,6 +17,7 @@ def main():
     parser.add_argument('--data', type=str, default='housing')
     parser.add_argument('--train_edge', type=float, default=0.7)
     parser.add_argument('--split_sample', type=float, default=0.)
+    parser.add_argument('--split_by', type=str, default='y') # 'y', 'random'
     parser.add_argument('--split_train', action='store_true', default=False)
     parser.add_argument('--split_test', action='store_true', default=False)
     parser.add_argument('--train_y', type=float, default=0.7)

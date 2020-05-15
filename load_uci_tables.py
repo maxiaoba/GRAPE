@@ -18,12 +18,13 @@ methods = ["knn_v2train0.7split0.7","knn_v2train0.7split0.7test",
 			"svd_v2train0.7split0.7","svd_v2train0.7split0.7test",
 			"spectral_v2train0.7split0.7","spectral_v2train0.7split0.7test",
 			"gain_v2train0.7split0.7","gain_v2train0.7split0.7train",
-			"gnn_mdi_v2train0.7split0.7test","gnn_mdi_v2train0.7split0.7traintest"
+			"gnn_mdi_v2train0.7split0.7train","gnn_mdi_v2train0.7split0.7test",
+			"gnn_mdi_v2train0.7split0.7traintest"
 			]
 method_names = ["knn","knn test","mean","mean test",
 				"mice","mice test","svd", "svd test",
 				"spectral","spectral test","gain","gain train",
-				"gnn test","gnn train test",]
+				"gnn train","gnn test","gnn train test",]
 table_name = 'train0.7split0.7'
 seeds = [0,1,2,3,4]
 
