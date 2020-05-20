@@ -12,20 +12,20 @@ datasets = ["concrete","energy","housing","kin8nm","naval","power",
 # method_names = ["knn","mean","mice","svd","spectral","gain","gnn","gnn n2n"]
 # methods = ["gnn_mdi_v2train0.7","gnn_mdi_v2train0.7known1.0"]
 # method_names = ["with edge dropout","without edge dropout"]
-methods = ["knn_v2train0.7split0.7","knn_v2train0.7split0.7test",
-			"mean_v2train0.7split0.7","mean_v2train0.7split0.7test",
-			"mice_v2train0.7split0.7","mice_v2train0.7split0.7test",
-			"svd_v2train0.7split0.7","svd_v2train0.7split0.7test",
-			"spectral_v2train0.7split0.7","spectral_v2train0.7split0.7test",
-			"gain_v2train0.7split0.7","gain_v2train0.7split0.7train",
-			"gnn_mdi_v2train0.7split0.7train","gnn_mdi_v2train0.7split0.7test",
-			"gnn_mdi_v2train0.7split0.7traintest"
+methods = ["knn_v2train0.7splitrandom0.7","knn_v2train0.7splitrandom0.7test",
+			"mean_v2train0.7splitrandom0.7","mean_v2train0.7splitrandom0.7test",
+			"mice_v2train0.7splitrandom0.7","mice_v2train0.7splitrandom0.7test",
+			"svd_v2train0.7splitrandom0.7","svd_v2train0.7splitrandom0.7test",
+			"spectral_v2train0.7splitrandom0.7","spectral_v2train0.7splitrandom0.7test",
+			"gain_v2train0.7splitrandom0.7","gain_v2train0.7splitrandom0.7train",
+			"gnn_mdi_v2train0.7splitrandom0.7train","gnn_mdi_v2train0.7splitrandom0.7test",
+			"gnn_mdi_v2train0.7splitrandom0.7traintest"
 			]
 method_names = ["knn","knn test","mean","mean test",
 				"mice","mice test","svd", "svd test",
 				"spectral","spectral test","gain","gain train",
 				"gnn train","gnn test","gnn train test",]
-table_name = 'train0.7split0.7'
+table_name = 'train0.7splitrandom0.7'
 seeds = [0,1,2,3,4]
 
 with open("{}/tables/mae_{}.txt".format(pre_path,table_name), "w") as text_file:
