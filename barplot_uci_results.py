@@ -80,9 +80,8 @@ for method,method_name in zip(methods,method_names):
 df = pd.DataFrame(data=data)
 
 import seaborn as sns
-sns.set(style="ticks")
+sns.set(style="ticks", font_scale=3)
 plt.figure(figsize=(20,10))
-sns.set(font_scale=3)
 ax = sns.barplot(x="Dataset", y="Test MAE", hue="Method", data=df, palette=colors,
 				 errwidth=0.8)
 plt.legend(loc='right', bbox_to_anchor=(1.25, 0.5), ncol=1)
