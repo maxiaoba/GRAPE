@@ -1,7 +1,7 @@
 library(xgboost)
 library(rpart)
 
-setwd("/Users/daisyding/Desktop/2020_Spring/MDI_GNN/uci/data_with_missing/0.7/")
+setwd("/Users/daisyding/Desktop/2020_Spring/MDI_GNN/uci/data_with_missing/0.3/")
 
 datasets = c('concrete', 'energy', 'housing', 'kin8nm',
           'naval', 'power', 'protein', 'wine', 'yacht')
@@ -36,6 +36,9 @@ for (i in seq(datasets)){
     mae_list_tree[i,j] = mae_tree
   }
 }
+
+setwd("/Users/daisyding/Desktop/2020_Spring/MDI_GNN/uci/data_with_missing")
+write.csv(mae_list_tree, "tree_0.3.txt")
 
 xgb_mae_average = apply(mae_list_xgb,1,mean)
 tree_mae_average = apply(mae_list_tree,1,mean)
