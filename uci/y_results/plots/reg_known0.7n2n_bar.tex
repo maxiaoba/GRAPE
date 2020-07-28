@@ -1,0 +1,140 @@
+% This file was created by tikzplotlib v0.9.2.
+\begin{tikzpicture}
+
+\definecolor{color0}{rgb}{0.875,0.125,0.125}
+\definecolor{color1}{rgb}{0.125,0.125,0.875}
+
+\begin{axis}[
+axis line style={white!15!black},
+legend cell align={left},
+legend style={fill opacity=0.8, draw opacity=1, text opacity=1, at={(1.25,0.5)}, anchor=north, draw=white!80!black},
+tick align=outside,
+tick pos=left,
+x grid style={white!80!black},
+xlabel={Dataset},
+xmin=-0.5, xmax=8.5,
+xtick style={color=white!15!black},
+xtick={0,1,2,3,4,5,6,7,8},
+xticklabels={concrete,energy,housing,kin8nm,naval,power,protein,wine,yacht},
+y grid style={white!80!black},
+ylabel={Downstream Regression Test MAE},
+ymin=0, ymax=1.78644629399197,
+ytick style={color=white!15!black}
+]
+\draw[draw=white,fill=color0] (axis cs:-0.4,0) rectangle (axis cs:0,0.841313463154685);
+\addlegendimage{ybar,ybar legend,draw=white,fill=color0};
+\addlegendentry{MD-GNN End-to-End}
+
+\draw[draw=white,fill=color0] (axis cs:0.6,0) rectangle (axis cs:1,0.63681691591245);
+\draw[draw=white,fill=color0] (axis cs:1.6,0) rectangle (axis cs:2,0.892070262039259);
+\draw[draw=white,fill=color0] (axis cs:2.6,0) rectangle (axis cs:3,0.897838738139338);
+\draw[draw=white,fill=color0] (axis cs:3.6,0) rectangle (axis cs:4,1.67050689986955);
+\draw[draw=white,fill=color0] (axis cs:4.6,0) rectangle (axis cs:5,0.960751121708716);
+\draw[draw=white,fill=color0] (axis cs:5.6,0) rectangle (axis cs:6,0.944098740602812);
+\draw[draw=white,fill=color0] (axis cs:6.6,0) rectangle (axis cs:7,1.02023693265098);
+\draw[draw=white,fill=color0] (axis cs:7.6,0) rectangle (axis cs:8,0.523218718764382);
+\draw[draw=white,fill=color1] (axis cs:-2.77555756156289e-17,0) rectangle (axis cs:0.4,1);
+\addlegendimage{ybar,ybar legend,draw=white,fill=color1};
+\addlegendentry{MD-GNN with Linear Regression}
+
+\draw[draw=white,fill=color1] (axis cs:1,0) rectangle (axis cs:1.4,1);
+\draw[draw=white,fill=color1] (axis cs:2,0) rectangle (axis cs:2.4,1);
+\draw[draw=white,fill=color1] (axis cs:3,0) rectangle (axis cs:3.4,1);
+\draw[draw=white,fill=color1] (axis cs:4,0) rectangle (axis cs:4.4,1);
+\draw[draw=white,fill=color1] (axis cs:5,0) rectangle (axis cs:5.4,1);
+\draw[draw=white,fill=color1] (axis cs:6,0) rectangle (axis cs:6.4,1);
+\draw[draw=white,fill=color1] (axis cs:7,0) rectangle (axis cs:7.4,1);
+\draw[draw=white,fill=color1] (axis cs:8,0) rectangle (axis cs:8.4,1);
+\addplot [line width=0.32pt, white!26!black, forget plot]
+table {%
+-0.2 0.818512698734394
+-0.2 0.86541526411411
+};
+\addplot [line width=0.32pt, white!26!black, forget plot]
+table {%
+0.8 0.5904060072457
+0.8 0.683227824579199
+};
+\addplot [line width=0.32pt, white!26!black, forget plot]
+table {%
+1.8 0.824348655062486
+1.8 0.942206827352508
+};
+\addplot [line width=0.32pt, white!26!black, forget plot]
+table {%
+2.8 0.88422331226443
+2.8 0.90836170073197
+};
+\addplot [line width=0.32pt, white!26!black, forget plot]
+table {%
+3.8 1.64378537215985
+3.8 1.70137742284949
+};
+\addplot [line width=0.32pt, white!26!black, forget plot]
+table {%
+4.8 0.941332377283697
+4.8 0.982442983251532
+};
+\addplot [line width=0.32pt, white!26!black, forget plot]
+table {%
+5.8 0.926834542822138
+5.8 0.963261018161178
+};
+\addplot [line width=0.32pt, white!26!black, forget plot]
+table {%
+6.8 0.991376841298179
+6.8 1.04815877833036
+};
+\addplot [line width=0.32pt, white!26!black, forget plot]
+table {%
+7.8 0.501421665420755
+7.8 0.544627867017783
+};
+\addplot [line width=0.32pt, white!26!black, forget plot]
+table {%
+0.2 0.975412252253605
+0.2 1.0245877477464
+};
+\addplot [line width=0.32pt, white!26!black, forget plot]
+table {%
+1.2 0.958052359937576
+1.2 1.04001689965232
+};
+\addplot [line width=0.32pt, white!26!black, forget plot]
+table {%
+2.2 0.965916679223491
+2.2 1.03496276656487
+};
+\addplot [line width=0.32pt, white!26!black, forget plot]
+table {%
+3.2 0.99622167182376
+3.2 1.00428554304436
+};
+\addplot [line width=0.32pt, white!26!black, forget plot]
+table {%
+4.2 0.954394124926864
+4.2 1.04152660345659
+};
+\addplot [line width=0.32pt, white!26!black, forget plot]
+table {%
+5.2 0.980098219186547
+5.2 1.02151998198636
+};
+\addplot [line width=0.32pt, white!26!black, forget plot]
+table {%
+6.2 0.992304735553605
+6.2 1.00861056055139
+};
+\addplot [line width=0.32pt, white!26!black, forget plot]
+table {%
+7.2 0.985736338688138
+7.2 1.01426366131186
+};
+\addplot [line width=0.32pt, white!26!black, forget plot]
+table {%
+8.2 0.964394294938536
+8.2 1.03562889345302
+};
+\end{axis}
+
+\end{tikzpicture}

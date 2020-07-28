@@ -65,8 +65,8 @@
 # 	python train_uci_mdi_all.py --post_hiddens 0 --save_model --split_sample 0.7 --split_by random --split_test --seed $seed --comment v2train0.7splitrandom0.7test
 # done
 
-for seed in 4
+for seed in 0 1 2 3 4
 do
-	python train_uci_mdi_all.py --post_hiddens 0 --save_model --split_sample 0.7 --split_by random --split_train --seed $seed --comment v2train0.7splitrandom0.7train
+	python linear_regression_uci_y_all.py --best_level --train_edge 0.7 --seed $seed --comment v2train0.7
 done
 

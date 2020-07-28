@@ -8,30 +8,31 @@ import seaborn as sns
 sns.set_context("poster")
 sns.set_style("ticks")
 
-pre_path = "./uci/mdi_results"
-methods = ["knn","mean","mice","svd","spectral","gain","gnn_mdi"]
-method_names = ["KNN","Mean","MICE","SVD","Spectral","GAIN","MD-GNN"]
-colors = [(0., 0., 0.5), 'g', 'c', 'm', 'y', 'pink', 'blue']
-ylabel = 'MDI Test MAE'
-plot_name = 'mdi_known_ratio'
+# pre_path = "./uci/mdi_results"
+# methods = ["mean","knn","mice","svd","spectral","gain","gnn_mdi"]
+# method_names = ["Mean","KNN","MICE","SVD","Spectral","GAIN","GRAPE"]
+# colors = [(0., 0.5, 0.8), 'g', 'c', 'm', 'y', 'pink', 'blue']
+# ylabel = 'Feature Imputation Test MAE'
+# plot_name = 'mdi_known_ratio'
 
-# pre_path = "./uci/y_results"
-# methods = ["knn","mean","mice","svd","spectral","gain","gnn"]
-# method_names = ["KNN","Mean","MICE","SVD","Spectral","GAIN","MD-GNN"]
-# colors = [(0., 0., 0.5), 'g', 'c', 'm', 'y', 'pink', 'blue']
-# ylabel = "Downstream Regression Test MAE"
-# plot_name = 'reg_known_ratio'
+pre_path = "./uci/y_results"
+methods = ["mean","knn","mice","svd","spectral","gain","tree","gnn"]
+method_names = ["Mean","KNN","MICE","SVD","Spectral","GAIN","Tree","GRAPE"]
+colors = [(0., 0.5, 0.8), 'g', 'c', 'm', 'y', 'pink', 'k', 'blue']
+ylabel = "Label Prediction Test MAE"
+plot_name = 'reg_known_ratio'
 
 comments = ['v2train0.9','v2train0.7','v2train0.5','v2train0.3']
 xs = [0.1,0.3,0.5,0.7]
-# datasets = ["concrete","energy","housing","kin8nm","naval","power",
-# 			"protein","wine","yacht"]
+
+datasets = ["concrete","energy","housing","kin8nm","naval","power",
+			"protein","wine","yacht"]
 # datasets = ["concrete"]
-datasets = ["protein"]
+# datasets = ["protein"]
 seeds = [0,1,2,3,4]
 xlabel = 'Missing data ratio'
 use_ylabel = False
-use_legend = True
+use_legend = False
 
 for dataset in datasets:
 	print(dataset)
@@ -43,12 +44,12 @@ for dataset in datasets:
 			for seed in seeds:
 				load_path = '{}/results/{}_{}/{}/{}/'.format(pre_path, method, comment, dataset, seed)
 				obj = joblib.load(load_path+'result.pkl')
-				if method == 'gnn_mdi':
-				# if method == 'gnn':
+				# if method == 'gnn_mdi':
+				if method == 'gnn':
 					result.append(obj['curves']['test_l1'][-1])
 				elif method == 'gain':
-					result.append(obj['mdi_mae'])
-					# result.append(obj['reg_mae'])
+					# result.append(obj['mdi_mae'])
+					result.append(obj['reg_mae'])
 				else:
 					result.append(obj['mae'])
 			mean = np.mean(result)
@@ -72,5 +73,5 @@ for dataset in datasets:
 	if use_legend:
 		plot_file = plot_file + '_legend'
 	plt.savefig("{}.png".format(plot_file), dpi=150, bbox_inches='tight')
-	tikzplotlib.save("{}.tex".format(plot_file))
-
+	# tikzplotlib.save("{}.tex".format(plot_file))
+	plt.savefig("{}.pdf".format(plot_file), bbox_inches='tight')

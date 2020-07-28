@@ -3,10 +3,12 @@ import numpy as np
 import pandas as pd
 from sklearn import preprocessing
 import pickle
+import time
 
 from utils.utils import construct_missing_X_from_mask
 
 def baseline_mdi(data, args, log_path):
+    t0 = time.time()
     train_edge_mask = data.train_edge_mask.numpy()
     X, X_incomplete = construct_missing_X_from_mask(train_edge_mask, data.df_X)
     # X, X_incomplete = construct_missing_X_from_edge_index(train_edge_index, df)
@@ -15,8 +17,11 @@ def baseline_mdi(data, args, log_path):
             higher_y_index = data.higher_y_index
             X = X[higher_y_index]
             X_incomplete = X_incomplete[higher_y_index]
+    t_load = time.time()
 
     X_filled = baseline_inpute(X_incomplete, args.method,args.level)
+    t_impute = time.time()
+
     if hasattr(args,'split_sample') and args.split_sample > 0.:
         if not args.split_test:
             higher_y_index = data.higher_y_index
@@ -29,10 +34,15 @@ def baseline_mdi(data, args, log_path):
     mae = np.mean(np.abs(diff))
     rmse = np.sqrt(np.mean(diff**2))
 
+    t_test = time.time()
+
     obj = dict()
     obj['args'] = args
     obj['rmse'] = rmse
     obj['mae'] = mae
+    obj['load_time'] = t_load - t0
+    obj['impute_time'] = t_impute - t_load
+    obj['test_time'] = t_test - t_impute
     print('rmse: {:.3g}, mae: {:.3g}'.format(rmse,mae))
     pickle.dump(obj, open(log_path + 'result.pkl', "wb"))
 
