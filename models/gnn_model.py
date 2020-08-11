@@ -26,13 +26,13 @@ def get_gnn(data, args):
                             args.node_dim, args.edge_dim, args.edge_mode,
                             model_types, args.dropout, args.gnn_activation,
                             args.concat_states,
-                            norm_embs)
+                            norm_embs, args.aggr)
     else:
         model = GNNStack(data.num_node_features, data.edge_attr_dim,
                             args.node_dim, args.edge_dim, args.edge_mode,
                             model_types, args.dropout, args.gnn_activation,
                             args.concat_states, post_hiddens,
-                            norm_embs)
+                            norm_embs, args.aggr)
     return model
 
 class GNNStack(torch.nn.Module):
@@ -41,7 +41,7 @@ class GNNStack(torch.nn.Module):
                 node_dim, edge_dim, edge_mode,
                 model_types, dropout, activation,
                 concat_states, node_post_mlp_hiddens,
-                normalize_embs,
+                normalize_embs, aggr
                 ):
         super(GNNStack, self).__init__()
         self.dropout = dropout
@@ -53,7 +53,7 @@ class GNNStack(torch.nn.Module):
         # convs
         self.convs = self.build_convs(node_input_dim, edge_input_dim,
                                     node_dim, edge_dim, edge_mode,
-                                    model_types, normalize_embs, activation)
+                                    model_types, normalize_embs, activation, aggr)
 
         # post node update
         if concat_states:
@@ -82,18 +82,18 @@ class GNNStack(torch.nn.Module):
 
     def build_convs(self, node_input_dim, edge_input_dim,
                      node_dim, edge_dim, edge_mode,
-                     model_types, normalize_embs, activation):
+                     model_types, normalize_embs, activation, aggr):
         convs = nn.ModuleList()
         conv = self.build_conv_model(model_types[0],node_input_dim,node_dim,
-                                    edge_input_dim, edge_mode, normalize_embs[0], activation)
+                                    edge_input_dim, edge_mode, normalize_embs[0], activation, aggr)
         convs.append(conv)
         for l in range(1,len(model_types)):
             conv = self.build_conv_model(model_types[l],node_dim, node_dim,
-                                    edge_dim, edge_mode, normalize_embs[l], activation)
+                                    edge_dim, edge_mode, normalize_embs[l], activation, aggr)
             convs.append(conv)
         return convs
 
-    def build_conv_model(self, model_type, node_in_dim, node_out_dim, edge_dim, edge_mode, normalize_emb, activation):
+    def build_conv_model(self, model_type, node_in_dim, node_out_dim, edge_dim, edge_mode, normalize_emb, activation, aggr):
         #print(model_type)
         if model_type == 'GCN':
             return pyg_nn.GCNConv(node_in_dim,node_out_dim)
@@ -104,7 +104,7 @@ class GNNStack(torch.nn.Module):
         elif model_type == 'EGCN':
             return EGCNConv(node_in_dim,node_out_dim,edge_dim,edge_mode)
         elif model_type == 'EGSAGE':
-            return EGraphSage(node_in_dim,node_out_dim,edge_dim,activation,edge_mode,normalize_emb)
+            return EGraphSage(node_in_dim,node_out_dim,edge_dim,activation,edge_mode,normalize_emb, aggr)
 
     def build_edge_update_mlps(self, node_dim, edge_input_dim, edge_dim, gnn_layer_num, activation):
         edge_update_mlps = nn.ModuleList()
@@ -186,6 +186,7 @@ class GNNDualStack(GNNStack):
                 model_types, dropout, activation,
                 concat_states,
                 normalize_embs,
+                aggr
                 ):
         super(GNNStack, self).__init__()
         self.user_num = user_num
@@ -199,10 +200,10 @@ class GNNDualStack(GNNStack):
         # convs
         self.convs1 = self.build_convs(node_input_dim, edge_input_dim,
                                     node_dim, edge_dim, edge_mode,
-                                    model_types, normalize_embs, activation)
+                                    model_types, normalize_embs, activation, aggr)
         self.convs2 = self.build_convs(node_input_dim, edge_input_dim,
                                     node_dim, edge_dim, edge_mode,
-                                    model_types, normalize_embs, activation)
+                                    model_types, normalize_embs, activation, aggr)
 
         self.edge_update_mlps1 = self.build_edge_update_mlps(node_dim, edge_input_dim, edge_dim, self.gnn_layer_num, activation)
         self.edge_update_mlps2 = self.build_edge_update_mlps(node_dim, edge_input_dim, edge_dim, self.gnn_layer_num, activation)

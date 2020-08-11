@@ -14,8 +14,9 @@ class EGraphSage(MessagePassing):
     """Non-minibatch version of GraphSage."""
     def __init__(self, in_channels, out_channels,
                  edge_channels, activation, edge_mode,
-                 normalize_emb=True):
-        super(EGraphSage, self).__init__(aggr='mean')
+                 normalize_emb,
+                 aggr):
+        super(EGraphSage, self).__init__(aggr=aggr)
 
         self.in_channels = in_channels
         self.out_channels = out_channels
