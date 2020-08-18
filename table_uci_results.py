@@ -34,9 +34,13 @@ pre_path = "./uci/mdi_results"
 # 				"gnn train","gnn test","gnn train test",]
 # table_name = 'train0.7splitrandom0.7'
 
-methods = ["knn_v2train0.7","mean_v2train0.7","mice_v2train0.7","svd_v2train0.7","spectral_v2train0.7","gain_v2train0.7","miwae_v2train0.7","gnn_mdi_v2train0.7"]
-method_names = ["knn","mean","mice","svd","spectral","gain","miwae","gnn"]
-table_name = 'v2train0.7_2'
+# methods = ["knn_v2train0.7","mean_v2train0.7","mice_v2train0.7","svd_v2train0.7","spectral_v2train0.7","gain_v2train0.7","miwae_v2train0.7","gnn_mdi_v2train0.7"]
+# method_names = ["knn","mean","mice","svd","spectral","gain","miwae","gnn"]
+# table_name = 'v2train0.7_2'
+
+methods = ["gnn_mdi_v2train0.7","gnn_mdi_v2train0.7add","gnn_mdi_v2train0.7max"]
+method_names = ["mean","sum","max"]
+table_name = 'aggr'
 
 datasets = ["concrete","energy","housing","kin8nm","naval","power",
 			"protein","wine","yacht"]
