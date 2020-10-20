@@ -1,4 +1,4 @@
-name: cs224w
+name: grape
 channels:
   - defaults
 dependencies:
@@ -10,12 +10,9 @@ dependencies:
     - pyqt5==5.13.1
     - scipy==1.3.1
     - fancyimpute
+    - seaborn # for plot
     # torch doesn't intall correctly
     # do this manually
-    # pip install torch (with commands from official website)
-    # pip install --no-cache-dir torch-scatter
-    # pip install --no-cache-dir torch-sparse
-    # pip install --no-cache-dir torch-cluster
-    # pip install torch-geometric
-    # pip install networkx
+    # torch and torchvision (https://pytorch.org/)
+    # torch-geometric (https://github.com/rusty1s/pytorch_geometric)
 
