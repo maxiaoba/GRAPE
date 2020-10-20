@@ -1,2 +1,0 @@
- & concrete & energy & housing & kin8nm & naval & power & protein & wine & yacht \\
-gain & $12.7$& $3.43$& $5.95$& $0.224$& $0.00661$& $7.58$& $5.44$& $0.681$& $12.2$\\ 

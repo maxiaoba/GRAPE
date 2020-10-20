@@ -1,1 +1,0 @@
-python train_mdi.py --epochs 2000 --lr 1e-4 --log_dir 24transfer --transfer_dir 24 --transfer_extra _best_valid_rmse --norm_embs 0_0_0 --node_dim 128 --edge_dim 128 --impute_hiddens 128 --post_hiddens 0 --valid 0.1 mc --testing --norm_label --one_hot_edge --data ml_100k

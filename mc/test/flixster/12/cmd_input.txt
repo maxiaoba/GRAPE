@@ -1,1 +1,0 @@
-python train_mdi.py --epochs 2000 --log_dir 12 --model_types EGSAGE_EGSAGE --node_dim 16 --edge_dim 16 --impute_hiddens 16 --valid 0.1 mc --testing --data flixster

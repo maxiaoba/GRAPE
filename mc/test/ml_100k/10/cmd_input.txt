@@ -1,1 +1,0 @@
-python train_mdi.py --epochs 2000 --log_dir 10 --valid 0.1 mc --testing --data ml_100k --ce_loss --one_hot_edge

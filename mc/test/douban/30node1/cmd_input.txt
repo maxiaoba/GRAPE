@@ -1,1 +1,0 @@
-python train_mdi.py --epochs 5000 --log_dir 30node1 --node_mode 1 --post_hiddens 0 --norm_embs 0_0_0 --valid 0.1 --save_prediction mc --testing --norm_label --data douban --one_hot_edge

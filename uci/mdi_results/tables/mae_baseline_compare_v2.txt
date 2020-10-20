@@ -1,6 +1,0 @@
- & concrete & energy & housing & kin8nm & naval & power & protein & wine & yacht \\
-knn & v2lv2& v2lv2& v2lv1& v2lv2& v2lv2& v2lv2& v2lv2& v2lv2& v2lv2\\ 
-mean & v2lv0& v2lv0& v2lv0& v2lv0& v2lv0& v2lv0& v2lv0& v2lv0& v2lv0\\ 
-mice & v2lv2& v2lv2& v2lv0& v2lv0& v2lv0& v2lv2& v2lv0& v2lv0& v2lv2\\ 
-svd & v2lv2& v2lv2& v2lv0& v2lv0& v2lv1& v2lv1& v2lv1& v2lv2& v2lv2\\ 
-spectral & v2lv2& v2lv1& v2lv1& v2lv2& v2lv1& v2lv2& v2lv1& v2lv1& v2lv0\\ 

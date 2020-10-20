@@ -1,3 +1,0 @@
- & concrete & energy & housing & kin8nm & naval & power & protein & wine & yacht \\
-MD-GNN End-to-End & $7.88$& $1.65$& $3.39$& $0.163$& $0.00652$& $4.61$& $4.23$& $0.535$& $4.72$\\ 
-MD-GNN with Linear Regression & $9.36$& $2.59$& $3.8$& $0.181$& $0.0039$& $4.8$& $4.48$& $0.524$& $9.02$\\ 

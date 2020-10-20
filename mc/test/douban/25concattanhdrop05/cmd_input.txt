@@ -1,1 +1,0 @@
-python train_mdi.py --epochs 5000 --log_dir 25concattanhdrop05 --concat_states --gnn_activation tanh --dropout 0.5 --model_types EGSAGE_EGSAGE_EGSAGE_EGSAGE --edge_dim 32 --node_dim 32 --impute_hiddens 128 --post_hiddens 0 --norm_embs 0_0_0_0 --valid 0.1 mc --testing --norm_label --data douban --one_hot_edge
