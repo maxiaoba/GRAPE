@@ -41,8 +41,8 @@ def main():
     parser.add_argument('--dropout', type=float, default=0.)
     parser.add_argument('--weight_decay', type=float, default=0.)
     parser.add_argument('--lr', type=float, default=0.001)
-    parser.add_argument('--known', type=float, default=0.7)
-    parser.add_argument('--valid', type=float, default=0.)
+    parser.add_argument('--known', type=float, default=0.7) # ratio of the known feature values
+    parser.add_argument('--valid', type=float, default=0.) # edge dropout rate
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--comment', type=str, default='v1')
     args = parser.parse_args()
