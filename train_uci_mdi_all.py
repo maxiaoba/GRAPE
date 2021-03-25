@@ -45,10 +45,10 @@ def main():
     parser.add_argument('--dropout', type=float, default=0.)
     parser.add_argument('--weight_decay', type=float, default=0.)
     parser.add_argument('--lr', type=float, default=0.001)
-    parser.add_argument('--known', type=float, default=0.7) # ratio of the known feature values
+    parser.add_argument('--known', type=float, default=0.7) # 1 - edge dropout rate
     parser.add_argument('--auto_known', action='store_true', default=False)
     parser.add_argument('--loss_mode', type=int, default = 0) # 0: loss on all train edge, 1: loss only on unknown train edge
-    parser.add_argument('--valid', type=float, default=0.) # edge dropout rate
+    parser.add_argument('--valid', type=float, default=0.) # valid-set ratio
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--save_model', action='store_true', default=False)
     parser.add_argument('--save_prediction', action='store_true', default=False)
